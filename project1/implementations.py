@@ -9,50 +9,6 @@ import csv
 """some helper functions for project 1."""
 
 
-def load_csv_data(data_path, sub_sample=False):
-    """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
-    y = np.genfromtxt(data_path, delimiter=",", skip_header=1, dtype=str, usecols=1)
-    x = np.genfromtxt(data_path, delimiter=",", skip_header=1)
-    ids = x[:, 0].astype(np.int)
-    input_data = x[:, 2:]
-
-    # convert class labels from strings to binary (-1,1)
-    yb = np.ones(len(y))
-    yb[np.where(y == "b")] = -1
-
-    # sub-sample
-    if sub_sample:
-        yb = yb[::50]
-        input_data = input_data[::50]
-        ids = ids[::50]
-
-    return yb, input_data, ids
-
-
-def predict_labels(weights, data):
-    """Generates class predictions given weights, and a test data matrix"""
-    y_pred = np.dot(data, weights)
-    y_pred[np.where(y_pred <= 0)] = -1
-    y_pred[np.where(y_pred > 0)] = 1
-
-    return y_pred
-
-
-def create_csv_submission(ids, y_pred, name):
-    """
-    Creates an output file in csv format for submission to kaggle
-    Arguments: ids (event ids associated with each prediction)
-               y_pred (predicted class labels)
-               name (string name of .csv output file to be created)
-    """
-    with open(name, "w") as csvfile:
-        fieldnames = ["Id", "Prediction"]
-        writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
-        writer.writeheader()
-        for r1, r2 in zip(ids, y_pred):
-            writer.writerow({"Id": int(r1), "Prediction": int(r2)})
-
-
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
     Generate a minibatch iterator for a dataset.
@@ -79,16 +35,6 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
-def build_k_indices(y, k_fold, seed):
-    """build k indices for k-fold."""
-    num_row = y.shape[0]
-    interval = int(num_row / k_fold)
-    np.random.seed(seed)
-    indices = np.random.permutation(num_row)
-    k_indices = [indices[k * interval : (k + 1) * interval] for k in range(k_fold)]
-    return np.array(k_indices)
-
-
 def build_poly(x, degree):
     """polynomial basis functions for input data x, for j=0 up to j=degree."""
     poly = np.ones((len(x), 1))
@@ -111,7 +57,7 @@ def compute_rmse(y, tx, w):
 def compute_gradient(y, tx, w):
     N = y.shape[0]
     e = np.subtract(y, np.dot(tx, w))
-    gradient = -(1 / (2 * N)) * np.dot((tx.T), (e))
+    gradient = -(1 / N) * np.dot((tx.T), (e))
     return gradient
 
 
@@ -210,37 +156,3 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             loss = logistic_regression_loss(minibatch_y, h) + regularization
 
     return (w, loss)
-
-
-def cross_validation(y, x, k_indices, k, lambda_, degree):
-    """return the loss of ridge regression."""
-
-    losses_tr = []
-    losses_te = []
-    for i, ind_te in enumerate(k_indices):
-        y_te = y[ind_te]
-        x_te = x[ind_te]
-
-        ind_tr = np.vstack((k_indices[:i], k_indices[i + 1 :])).flatten()
-        y_tr = y[ind_tr]
-        x_tr = x[ind_tr]
-        tx_tr = build_poly(x_tr, degree)
-        tx_te = build_poly(x_te, degree)
-        weights = ridge_regression(y_tr, tx_tr, lambda_)
-
-        losses_tr.append(compute_rmse(y_tr, tx_tr, weights))
-        losses_te.append(compute_rmse(y_te, tx_te, weights))
-
-    loss_tr = sum(losses_tr) / len(losses_tr)
-    loss_te = sum(losses_te) / len(losses_te)
-    return loss_tr, loss_te
-
-
-# Load the data and return y, x, and ids
-train_datapath = "data/train.csv"
-test_datapath = "data/test.csv"
-y_tr, x_tr, ids_tr = load_csv_data(train_datapath)
-y_te, x_te, ids_te = load_csv_data(test_datapath)
-
-# Get the weights
-weights = least_squares_GD(y_tr, tx, initial_w, max_iters, gamma)
