@@ -219,3 +219,12 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     loss_tr = sum(losses_tr) / len(losses_tr)
     loss_te = sum(losses_te) / len(losses_te)
     return loss_tr, loss_te
+
+
+# Load the data and return y, x, and ids
+train_datapath = "data/train.csv"
+test_datapath = "data/test.csv"
+y_tr, x_tr, ids_tr = load_csv_data(train_datapath)
+y_te, x_te, ids_te = load_csv_data(test_datapath)
+
+# Get the weights
