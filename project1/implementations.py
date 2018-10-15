@@ -99,7 +99,7 @@ def build_poly(x, degree):
 
 def compute_mse(y, tx, w):
     e = y - np.dot(tx, w)
-    mse = (1 / 2) * np.mean(e ** 2)
+    mse = (1 / 2) * np.mean(np.dot(e.T, e))
     return mse
 
 
@@ -207,7 +207,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             w = w - gamma * (gradient)
 
             regularization = lambda_ / 2 * np.sum(w ** 2)
-            loss = logistic_regression_loss(minibatch_y, h)  + regularization
+            loss = logistic_regression_loss(minibatch_y, h) + regularization
 
     return (w, loss)
 
@@ -243,3 +243,4 @@ y_tr, x_tr, ids_tr = load_csv_data(train_datapath)
 y_te, x_te, ids_te = load_csv_data(test_datapath)
 
 # Get the weights
+weights = least_squares_GD(y_tr, tx, initial_w, max_iters, gamma)
