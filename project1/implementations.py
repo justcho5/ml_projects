@@ -1,3 +1,5 @@
+import numpy as np
+
 # Return type: Note that all functions should return: (w, loss), which is the last weight vector of the
 # method, and the corresponding loss value (cost function). Note that while in previous labs you might have
 # kept track of all encountered w for iterative methods, here we only want the last one.
@@ -72,6 +74,7 @@ def least_squares(y, tx):
     # Here I used RMSE
     loss = np.sqrt(2*compute_mse(y, tx, w))
     return (w, loss)
+
 def ridge_regression(y, tx, lambda_):
 # Ridge regression using normal equations
     aI = 2*tx.shape[0]*lambda_*np.identity(tx.shape[1])
@@ -85,6 +88,7 @@ def ridge_regression(y, tx, lambda_):
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
 # Logistic regression using gradient descent or SGD
+    raise NotImplemented
+
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-
-
+    raise NotImplemented
