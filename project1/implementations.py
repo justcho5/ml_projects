@@ -194,7 +194,22 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-    raise NotImplemented
+    # Logistic regression using gradient descent or SGD
+    z = tx @ gamma
+    h = sigmoid(z)
+
+    w = initial_w
+
+    for n_iter in range(max_iters):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
+            gradient = logistic_regression_gradient(minibatch_tx, minibatch_y, h)
+
+            w = w - gamma * (gradient)
+
+            regularization = lambda_ / 2 * np.sum(w ** 2)
+            loss = logistic_regression_loss(minibatch_y, h)  + regularization
+
+    return (w, loss)
 
 
 def cross_validation(y, x, k_indices, k, lambda_, degree):
