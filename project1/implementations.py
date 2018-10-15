@@ -52,7 +52,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     return (w, loss)
 
 def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
-# Linear regression using stochastic gradient descent
+    # Linear regression using stochastic gradient descent
     w = initial_w
     
     for n_iter in range(max_iters):
@@ -86,9 +86,31 @@ def ridge_regression(y, tx, lambda_):
     return (w, loss)
 
 
+def sigmoid(z):
+    return 1/ (1 + np.exp(-z))
+
+def logistic_regression_loss(y, h):
+    return (-y * np.log(h) - (1 - y) * np.log(1 - h)).mean()
+
+def logistic_regression_gradient(x, y, h):
+    return (x.T @ (h - y )) / y.shape[0]
+
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
-# Logistic regression using gradient descent or SGD
-    raise NotImplemented
+    # Logistic regression using gradient descent or SGD
+    z = tx @ gamma
+    h = sigmoid(z)
+
+    w = initial_w
+
+    for n_iter in range(max_iters):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
+            gradient = logistic_regression_gradient(minibatch_tx, minibatch_y, h)
+            loss = logistic_regression_loss(minibatch_y, h)
+            w = w - gamma * (gradient)
+            # store w and loss
+
+    return (w, loss)
+
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     raise NotImplemented
