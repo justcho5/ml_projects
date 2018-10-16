@@ -10,8 +10,8 @@ from helpers import load_csv_data
 import numpy as np
 
 # Load the data and return y, x, and ids
-train_datapath = "../data/small-train.csv"
-test_datapath = "../data/small-test.csv"
+train_datapath = "../data/train.csv"
+test_datapath = "../data/test.csv"
 y_tr, x_tr, ids_tr = load_csv_data(train_datapath)
 y_te, x_te, ids_te = load_csv_data(test_datapath)
 print(x_tr)
@@ -19,6 +19,16 @@ print(x_tr)
 
 # Replace -999 by NaN
 x_tr[x_tr == -999] = np.nan
+print("Number of NaNs for each feature", np.isnan(x_tr).sum(axis=0) / x_tr.shape[0])
+# Number of NaNs for each feature [ 0.152456  0.        0.        0.        0.709828  0.709828  0.709828  0.
+#   0.        0.        0.        0.        0.709828  0.        0.        0.
+#   0.        0.        0.        0.        0.        0.        0.        0.399652
+#   0.399652  0.399652  0.709828  0.709828  0.709828  0.      ]
+
+
+# print("original", x_tr.shape)
+# print("nans", x_tr[np.isnan(x_tr).any(axis=1)].shape)
+
 # Standardize features
 x_tr = (x_tr - np.nanmean(x_tr, axis=0)) / np.nanstd(x_tr, axis=0)
 
@@ -33,5 +43,5 @@ lsgd_weights, lsgd_loss = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gam
 # rr_weights, rr_loss = ridge_regression(y_tr, x_tr, lambda_)
 # lr_weights, lr_loss = logistic_regression()
 # rlr_weights, rlr_loss
-print(lsgd_weights)
-print(lsgd_loss)
+# print(lsgd_weights)
+# print(lsgd_loss)
