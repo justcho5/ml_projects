@@ -10,18 +10,21 @@ from helpers import load_csv_data
 import numpy as np
 
 # Load the data and return y, x, and ids
-train_datapath = "../data/train.csv"
-test_datapath = "../data/test.csv"
+train_datapath = "../data/small-train.csv"
+test_datapath = "../data/small-test.csv"
 y_tr, x_tr, ids_tr = load_csv_data(train_datapath)
 y_te, x_te, ids_te = load_csv_data(test_datapath)
-
+print(x_tr)
 # Preprocessing
-# Scale each feature -1 to 1
-# -999 are nan values
+
+# Replace -999 by NaN
+x_tr[x_tr == -999] = np.nan
+# Standardize features
+x_tr = (x_tr - np.nanmean(x_tr, axis=0)) / np.nanstd(x_tr, axis=0)
 
 lambda_ = 2.27584592607e-05
 initial_w = np.random.rand(30, 1)
-print(initial_w)
+# print(initial_w)
 max_iters = 100
 gamma = 1 / max_iters
 # Get the weights
