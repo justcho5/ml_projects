@@ -38,7 +38,7 @@ y_te, x_te, ids_te = load_csv_data(test_datapath)
 print(x_tr)
 
 # Preprocessing
-print("Pre process: %s rows ", len(y_tr))
+print("Pre process: {} rows ".format(len(y_tr)))
 
 # Replace -999 by NaN
 x_tr[x_tr == -999] = np.nan
@@ -62,7 +62,7 @@ y_tr = y_tr[~np.isnan(x_tr).any(axis=1)]
 ids_tr = ids_tr[~np.isnan(x_tr).any(axis=1)]
 x_tr = x_tr[~np.isnan(x_tr).any(axis=1)]
 
-print("Do least square with %s rows".format(len(x_tr)))
+print("Do least square with ", len(x_tr), " rows")
 lambda_ = 2.27584592607e-05
 initial_w = np.random.rand(30, 1)
 # print(initial_w)
@@ -72,17 +72,21 @@ gamma = 1 / max_iters
 
 #lsgd_weights, lsgd_loss = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
 #ls_weights, ls_loss = least_squares(y_tr, x_tr)
-# rr_weights, rr_loss = ridge_regression(y_tr, x_tr, lambda_)
-# lr_weights, lr_loss = logistic_regression()
-# rlr_weights, rlr_loss
-#weights, loss = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
 
-#print("Weights: ", weights)
-#print("Loss: ", loss)
-#
+#lr_weights, lr_loss = logistic_regression(y_tr, x_tr, initial_w, max_iters, gamma)
+#print("Loss LR: ", lr_loss)
 
-k_indicies = build_k_indices(y_tr, 4, 1)
-loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, 2, lambda_, 1)
-print("Loss: ", loss_tr, loss_te)
+weights_ridge, loss_ridge = ridge_regression(y_tr, x_tr, lambda_)
+print("Loss Ridge Reg:", loss_ridge)
 
-#predict_and_generate_file()
+weights_ls_gd, loss_ls_gd = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
+print("Loss least square GD: ", loss_ls_gd)
+
+weights_ls_sgd, loss_ls_sgd = least_squares_SGD(y_tr, x_tr, initial_w, max_iters, gamma)
+print("Loss least square SGD: ", loss_ls_gd)
+
+#k_indicies = build_k_indices(y_tr, 4, 1)
+#loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, 2, lambda_, 1)
+#print("Loss: ", loss_tr, loss_te)
+
+#predict_and_generate_file(weights_ls_gd)
