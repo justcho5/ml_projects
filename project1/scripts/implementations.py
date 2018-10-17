@@ -119,25 +119,23 @@ def logistic_regression_loss(y, h):
 
 
 def logistic_regression_gradient(x, y, h):
-    return (x.T @ (h - y)) / y.shape[0]
-
+    a = h - y
+    r = x.T @ a
+    return r / y.shape[0]
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
-    z = tx @ gamma
+    z = tx @ initial_w
     h = sigmoid(z)
 
     w = initial_w
 
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
-            gradient = logistic_regression_gradient(minibatch_tx, minibatch_y, h)
-            loss = logistic_regression_loss(minibatch_y, h)
-            w = w - gamma * (gradient)
-            # store w and loss
+        gradient = logistic_regression_gradient(tx, y, h)
+        loss = logistic_regression_loss(y, h)
+        w = w - gamma * (gradient)
 
     return (w, loss)
-
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
