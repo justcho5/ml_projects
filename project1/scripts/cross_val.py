@@ -32,7 +32,6 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
         tx_te = build_poly(x_te, degree)
         weights, loss = ridge_regression(y_tr, tx_tr, lambda_)
 
-        print("Weights: ", weights)
         losses_tr.append(compute_rmse(y_tr, tx_tr, weights))
         losses_te.append(compute_rmse(y_te, tx_te, weights))
 
