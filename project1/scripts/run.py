@@ -115,13 +115,13 @@ print("Loss least square: ", loss_ls)
 
 for degree in range(1, 5):
 
-    k_indicies = build_k_indices(y_tr, 10, 1)
+    k_indices = build_k_indices(y_tr, 10, 1)
     fun = lambda y, x: least_squares(y, x)
-    loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, degree, fun)
+    loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indices, degree, fun)
     print("CrossVal. Loss Logistic Regression: ", loss_tr, loss_te, " degree=", degree)
 
     fun = lambda y, x: ridge_regression(y, x, lambda_)
-    loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, degree, fun)
+    loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indices, degree, fun)
     print("CrossVal. Loss Ridge Regression: ", loss_tr, loss_te, " degree=", degree)
 
 #predict_and_generate_file(weights_ridge, x_te)
