@@ -1,3 +1,11 @@
+import numpy as np
+
+from implementations import (
+    build_poly,
+    ridge_regression,
+    compute_rmse
+)
+
 def build_k_indices(y, k_fold, seed):
     """build k indices for k-fold."""
     num_row = y.shape[0]
@@ -22,8 +30,9 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
         x_tr = x[ind_tr]
         tx_tr = build_poly(x_tr, degree)
         tx_te = build_poly(x_te, degree)
-        weights = ridge_regression(y_tr, tx_tr, lambda_)
+        weights, loss = ridge_regression(y_tr, tx_tr, lambda_)
 
+        print("Weights: ", weights)
         losses_tr.append(compute_rmse(y_tr, tx_tr, weights))
         losses_te.append(compute_rmse(y_te, tx_te, weights))
 

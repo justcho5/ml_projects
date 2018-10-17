@@ -12,7 +12,21 @@ from helpers import (
     predict_labels,
     create_csv_submission
 )
+
+from cross_val import (
+    cross_validation,
+    build_k_indices
+)
+
 import numpy as np
+
+def predict_and_generate_file(weights):
+    print("Predict for test data")
+    y_prediction = predict_labels(weights, x_te)
+
+    print("Predictions: ", y_prediction)
+    print("Create submission file")
+    create_csv_submission(ids_te, y_prediction, '../data/output.csv')
 
 # Load the data and return y, x, and ids
 train_datapath = "../data/train.csv"
@@ -48,7 +62,7 @@ y_tr = y_tr[~np.isnan(x_tr).any(axis=1)]
 ids_tr = ids_tr[~np.isnan(x_tr).any(axis=1)]
 x_tr = x_tr[~np.isnan(x_tr).any(axis=1)]
 
-print("Do least square with %s rows", len(x_tr))
+print("Do least square with %s rows".format(len(x_tr)))
 lambda_ = 2.27584592607e-05
 initial_w = np.random.rand(30, 1)
 # print(initial_w)
@@ -61,14 +75,14 @@ gamma = 1 / max_iters
 # rr_weights, rr_loss = ridge_regression(y_tr, x_tr, lambda_)
 # lr_weights, lr_loss = logistic_regression()
 # rlr_weights, rlr_loss
-weights, loss = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
+#weights, loss = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
 
-print("Weights: ", weights)
-print("Loss: ", loss)
+#print("Weights: ", weights)
+#print("Loss: ", loss)
+#
 
-print("Predict for test data")
-y_prediction = predict_labels(weights, x_te)
-print("Predictions: ", y_prediction)
+k_indicies = build_k_indices(y_tr, 4, 1)
+loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, 2, lambda_, 1)
+print("Loss: ", loss_tr, loss_te)
 
-print("Create submission file")
-create_csv_submission(ids_te, y_prediction, '../data/output.csv')
+#predict_and_generate_file()
