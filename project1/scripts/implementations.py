@@ -139,18 +139,17 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
-    z = tx @ gamma
+    z = tx @ initial_w
     h = sigmoid(z)
 
     w = initial_w
 
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
-            gradient = logistic_regression_gradient(minibatch_tx, minibatch_y, h)
+        gradient = logistic_regression_gradient(tx, y, h)
 
-            w = w - gamma * (gradient)
+        w = w - gamma * (gradient)
 
-            regularization = lambda_ / 2 * np.sum(w ** 2)
-            loss = logistic_regression_loss(minibatch_y, h) + regularization
+        regularization = lambda_ / 2 * np.sum(w ** 2)
+        loss = logistic_regression_loss(y, h) + regularization
 
     return (w, loss)

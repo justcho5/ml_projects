@@ -70,20 +70,20 @@ max_iters = 100
 gamma = 1 / max_iters
 
 # Get the weights
-lr_weights, lr_loss = logistic_regression(y_tr, x_tr, initial_w, max_iters, gamma)
+lr_weights, lr_loss = logistic_regression(y_tr, x_tr, np.zeros(30), max_iters, gamma)
 print("Loss Logistic Regression: ", lr_loss)
 
-#reg_lr_weights, reg_lr_loss = reg_logistic_regression(y_tr, x_tr, lambda_, initial_w, max_iters, gamma)
-#print("Loss Reg. Logistic Regression: ", reg_lr_loss)
+reg_lr_weights, reg_lr_loss = reg_logistic_regression(y_tr, x_tr, lambda_, np.zeros(30), max_iters, gamma)
+print("Loss Reg. Logistic Regression: ", reg_lr_loss)
 
 weights_ridge, loss_ridge = ridge_regression(y_tr, x_tr, lambda_)
 print("Loss Ridge Reg:", loss_ridge)
 
-#weights_ls_gd, loss_ls_gd = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
-#print("Loss least square GD: ", loss_ls_gd)
+weights_ls_gd, loss_ls_gd = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
+print("Loss least square GD: ", loss_ls_gd)
 
-#weights_ls_sgd, loss_ls_sgd = least_squares_SGD(y_tr, x_tr, initial_w, max_iters, gamma)
-#print("Loss least square SGD: ", loss_ls_sgd)
+weights_ls_sgd, loss_ls_sgd = least_squares_SGD(y_tr, x_tr, initial_w, max_iters, gamma)
+print("Loss least square SGD: ", loss_ls_sgd)
 
 #k_indicies = build_k_indices(y_tr, 4, 1)
 #loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, 2, lambda_, 1)
