@@ -16,7 +16,7 @@ def build_k_indices(y, k_fold, seed):
     return np.array(k_indices)
 
 
-def cross_validation(y, x, k_indices, k, lambda_, degree):
+def cross_validation(y, x, k_indices, degree, model_function):
     """return the loss of ridge regression."""
 
     losses_tr = []
@@ -30,7 +30,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
         x_tr = x[ind_tr]
         tx_tr = build_poly(x_tr, degree)
         tx_te = build_poly(x_te, degree)
-        weights, loss = ridge_regression(y_tr, tx_tr, lambda_)
+        weights, loss = model_function(y_tr, tx_tr)
 
         losses_tr.append(compute_rmse(y_tr, tx_tr, weights))
         losses_te.append(compute_rmse(y_te, tx_te, weights))

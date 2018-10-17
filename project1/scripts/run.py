@@ -5,6 +5,7 @@ from implementations import (
     ridge_regression,
     logistic_regression,
     reg_logistic_regression,
+    build_poly
 )
 
 from helpers import load_csv_data, predict_labels, create_csv_submission
@@ -49,7 +50,7 @@ def standardize_features(x_tr, x_te):
     return x_tr, x_te
 
 
-def predict_and_generate_file(weights):
+def predict_and_generate_file(weights, x_te):
     print("Predict for test data")
     y_prediction = predict_labels(weights, x_te)
 
@@ -63,7 +64,7 @@ train_datapath = "../data/train.csv"
 test_datapath = "../data/test.csv"
 
 print("Load CSV file")
-y_tr, x_tr, ids_tr = load_csv_data(train_datapath, sub_sample=True)
+y_tr, x_tr, ids_tr = load_csv_data(train_datapath, sub_sample=False)
 y_te, x_te, ids_te = load_csv_data(test_datapath)
 print(x_tr)
 
@@ -72,7 +73,6 @@ print("Pre process: {} rows ".format(len(y_tr)))
 
 # Replace -999 by NaN
 x_tr[x_tr == -999] = np.nan
-x_te[x_te == -999] = np.nan
 
 # x_tr : original features
 # x_tr1 : removes all features with NaNs. Resulting shape (250000, 19)
@@ -84,31 +84,45 @@ x_tr2, x_te2 = remove_features(x_tr, x_te, threshold=0.7, replace_with_mean=True
 x_tr1, x_te1 = standardize_features(x_tr1, x_te1)
 x_tr2, x_te2 = standardize_features(x_tr2, x_te2)
 
-print("Do least square with ", len(x_tr), " rows")
+x_tr = x_tr1
+x_te = x_te1
+
 lambda_ = 2.27584592607e-05
-initial_w = np.random.rand(30, 1)
-# print(initial_w)
+initial_w = np.random.rand(x_tr.shape[1], 1)
 max_iters = 100
 gamma = 1 / max_iters
 
 # Get the weights
-lr_weights, lr_loss = logistic_regression(y_tr, x_tr, np.zeros(30), max_iters, gamma)
+lr_weights, lr_loss = logistic_regression(y_tr, x_tr, np.zeros(x_tr.shape[1]), max_iters, gamma)
 print("Loss Logistic Regression: ", lr_loss)
 
-reg_lr_weights, reg_lr_loss = reg_logistic_regression(y_tr, x_tr, lambda_, np.zeros(30), max_iters, gamma)
+reg_lr_weights, reg_lr_loss = reg_logistic_regression(y_tr, x_tr, lambda_, np.zeros(x_tr.shape[1]), max_iters, gamma)
 print("Loss Reg. Logistic Regression: ", reg_lr_loss)
 
+x_tr = build_poly(x_tr, 2)
+x_te = build_poly(x_te, 2)
 weights_ridge, loss_ridge = ridge_regression(y_tr, x_tr, lambda_)
 print("Loss Ridge Reg:", loss_ridge)
 
-weights_ls_gd, loss_ls_gd = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
-print("Loss least square GD: ", loss_ls_gd)
+weights_ls, loss_ls = least_squares(y_tr, x_tr)
+print("Loss least square: ", loss_ls)
 
-weights_ls_sgd, loss_ls_sgd = least_squares_SGD(y_tr, x_tr, initial_w, max_iters, gamma)
-print("Loss least square SGD: ", loss_ls_sgd)
+#weights_ls_gd, loss_ls_gd = least_squares_GD(y_tr, x_tr, initial_w, max_iters, gamma)
+#print("Loss least square GD: ", loss_ls_gd)
 
-#k_indicies = build_k_indices(y_tr, 4, 1)
-#loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, 2, lambda_, 1)
-#print("Loss: ", loss_tr, loss_te)
+#weights_ls_sgd, loss_ls_sgd = least_squares_SGD(y_tr, x_tr, initial_w, max_iters, gamma)
+#print("Loss least square SGD: ", loss_ls_sgd)
 
-#predict_and_generate_file(weights_ls_gd)
+for degree in range(1, 5):
+
+    k_indicies = build_k_indices(y_tr, 10, 1)
+    fun = lambda y, x: least_squares(y, x)
+    loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, degree, fun)
+    print("CrossVal. Loss Logistic Regression: ", loss_tr, loss_te, " degree=", degree)
+
+    fun = lambda y, x: ridge_regression(y, x, lambda_)
+    loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indicies, degree, fun)
+    print("CrossVal. Loss Ridge Regression: ", loss_tr, loss_te, " degree=", degree)
+
+#predict_and_generate_file(weights_ridge, x_te)
+
