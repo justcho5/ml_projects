@@ -74,7 +74,7 @@ def predict_and_generate_file(weights, x_te, ids_te):
 
 def read_train_test():
     # Load the data and return y, x, and ids
-    train_datapath = "../data/small-train.csv"
+    train_datapath = "../data/train.csv"
     test_datapath = "../data/test.csv"
 
     print("Load CSV file")
@@ -109,6 +109,7 @@ class Model:
         self.degree = degree
 
     def run(self, y_training, x_training, k_indices, model_function):
+        print(self.degree, "Run", self.name)
         (loss_training, loss_test, accuracy) = cross_validation(y_training, x_training,
                                                                 k_indices, self.degree, model_function)
         self.loss_training = loss_training
@@ -138,7 +139,6 @@ def try_different_models(x_training,
         # submit jobs to try all degrees
         best_model_for_degree = pool.map(try_all_models_for_degree, arguments)
 
-
         best_overall_model =  min(best_model_for_degree, key=lambda model: model.loss_test)
         return best_overall_model
 
@@ -148,42 +148,37 @@ def try_all_models_for_degree(degree_and_data):
     print("Start Degree = ", degree)
 
     lambda_ = 2.27584592607e-05
-    initial_w = np.random.rand(x_tr.shape[1], 1)
     max_iters = 100
-    gamma = 1 / max_iters
+    gamma = 1 / (max_iters**10)
 
     k_indices = build_k_indices(y_tr, 10)
 
     m_least_square = Model("Least Square", degree)
     m_least_square.run(y_training, x_training, k_indices, least_squares)
 
+    model_function = lambda y, x: least_squares_GD(y, x, np.zeros(x.shape[1]), max_iters, gamma)
+    m_least_square_gd = Model("Least Square GD", degree)
+    m_least_square_gd.run(y_training, x_training, k_indices, model_function)
+
+    model_function = lambda y, x: least_squares_SGD(y, x, np.zeros(x.shape[1]), max_iters, gamma)
+    m_least_square_sgd = Model("Least Square SGD", degree)
+    m_least_square_sgd.run(y_training, x_training, k_indices, model_function)
+
     model_function = lambda y, x: logistic_regression(y, x, np.zeros(x.shape[1]), max_iters, gamma)
     m_logistic_regression = Model("Logistic Regression", degree)
     m_logistic_regression.run(y_training, x_training, k_indices, model_function)
 
-    # model_function = lambda y, x: least_squares_GD(y, x, initial_w, max_iters, gamma)
-    # losses = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
-    # print_loss("Least Square GD", losses, degree)
-    # if (losses[2] > best_accuracy):
-    #    best_accuracy = losses[2]
-    #    best_weights = model_function(y_tr, build_poly(x_tr, degree))
-
-    # model_function = lambda y, x: least_squares_SGD(y, x, initial_w, max_iters, gamma)
-    # losses = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
-    # print_loss("Least Square SGD", losses, degree)
-    # if (losses[2] > best_accuracy):
-    #    best_accuracy = losses[2]
-    #    best_weights = model_function(y_tr, build_poly(x_tr, degree))
-
     model_function = lambda y, x: reg_logistic_regression(y, x, lambda_, np.zeros(x.shape[1]), max_iters, gamma)
-    m_reg_logistic_regression = Model("Logistic Reg Regression", degree)
+    m_reg_logistic_regression = Model("Reg. Logistic Regression", degree)
     m_reg_logistic_regression.run(y_training, x_training, k_indices, model_function)
 
     model_function = lambda y, x: ridge_regression(y, x, lambda_)
     m_ridge_regression = Model("Ridge Regression", degree)
     m_ridge_regression.run(y_training, x_training, k_indices, model_function)
 
-    all_models = [m_least_square, m_logistic_regression, m_reg_logistic_regression, m_ridge_regression]
+    all_models = [m_least_square, m_logistic_regression,
+                  m_least_square_gd, m_least_square_sgd,
+                  m_reg_logistic_regression, m_ridge_regression]
 
     # After all are done, print result
     for each_model in all_models:
