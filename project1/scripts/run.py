@@ -180,7 +180,7 @@ def try_all_models_for_degree(degree_and_data):
     m_reg_logistic_regression.run(y_training, x_training, k_indices, model_function)
 
     model_function = lambda y, x: ridge_regression(y, x, lambda_)
-    m_ridge_regression = Model("Logistic Ridge Regression", degree)
+    m_ridge_regression = Model("Ridge Regression", degree)
     m_ridge_regression.run(y_training, x_training, k_indices, model_function)
 
     all_models = [m_least_square, m_logistic_regression, m_reg_logistic_regression, m_ridge_regression]
