@@ -51,17 +51,18 @@ def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
     return x_tr, x_te
 
 
-def standardize_features(x_tr, x_te):
-    mean_tr = np.mean(x_tr, axis=0)
-    std_tr = np.std(x_tr, axis=0)
-    x_tr = (x_tr - mean_tr) / std_tr
-    x_te = (x_te - mean_tr) / std_tr
-
+def standardize_features(x_tr,x_te):
+     mean_tr = np.mean(x_tr, axis=0)
+     std_tr = np.std(x_tr, axis=0)
+     x_tr = (x_tr - mean_tr) / std_tr
+     x_te = (x_te - mean_tr) / std_tr
+     #return x_tr, x_te
+     #x_tr = (x_tr - np.amin(x_tr, axis= 0 ))/(np.amax(x_tr, axis = 0) - np.amin(x_tr, axis = 0))
+     #x_te = (x_te - np.amin(x_te, axis= 0 ))/(np.amax(x_te, axis = 0 ) - np.amin(x_te, axis = 0))
+     return x_tr, x_te
     #     print("First five train rows standardized: ", x_tr)
     #     print("First five test rows standardized: ", x_te)
-
-    return x_tr, x_te
-
+    
 
 def predict_and_generate_file(weights, x_te, ids_te):
     print("Predict for test data")
@@ -74,7 +75,7 @@ def predict_and_generate_file(weights, x_te, ids_te):
 
 def read_train_test():
     # Load the data and return y, x, and ids
-    train_datapath = "../data/small-train.csv"
+    train_datapath = "../data/train.csv"
     test_datapath = "../data/test.csv"
 
     print("Load CSV file")
@@ -83,7 +84,7 @@ def read_train_test():
     # print(x_te)
 
     # Replace -999 by 0
-    # x_tr[x_tr == -999] = 0
+    x_tr[x_tr == -999] = 0
 
     # x_tr : original features
     # x_tr1 : removes all features with NaNs. Resulting shape (250000, 19)
