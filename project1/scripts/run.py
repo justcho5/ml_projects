@@ -14,7 +14,6 @@ from cross_val import cross_validation, build_k_indices
 
 import numpy as np
 
-
 def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
     #     print("First five train rows before:\n", x_tr[:5], "\n")
     #     print("First five test rows before:\n", x_te[:5], "\n")
@@ -43,9 +42,9 @@ def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
     # 14 PRI_tau_eta
     # 17 PRI_lep_eta
 
-    x_te = np.delete(x_te, [20, 18, 15, 23, 26, 14, 17], axis=1)
-    x_tr = np.delete(x_tr, [20, 18, 15, 23, 26, 14, 17], axis=1)
-
+    index = [20, 18, 15]
+    x_te = np.delete(x_te, index, axis=1)
+    x_tr = np.delete(x_tr, index, axis=1)
 
     return x_tr, x_te
 
@@ -71,33 +70,39 @@ def predict_and_generate_file(weights, x_te):
     create_csv_submission(ids_te, y_prediction, "../data/output.csv")
 
 
-# Load the data and return y, x, and ids
-train_datapath = "../data/train.csv"
-test_datapath = "../data/test.csv"
+def read_train_test():
+    # Load the data and return y, x, and ids
+    train_datapath = "../data/train.csv"
+    test_datapath = "../data/test.csv"
 
-print("Load CSV file")
-y_tr, x_tr, ids_tr = load_csv_data(train_datapath, sub_sample=False)
-y_te, x_te, ids_te = load_csv_data(test_datapath)
-#print(x_te)
+    print("Load CSV file")
+    y_tr, x_tr, ids_tr = load_csv_data(train_datapath, sub_sample=False)
+    y_te, x_te, ids_te = load_csv_data(test_datapath)
+    #print(x_te)
 
-# Preprocessing
-print("Pre process: {} rows ".format(len(y_tr)))
+    # Preprocessing
+    print("Pre process: {} rows ".format(len(y_tr)))
 
-# Replace -999 by NaN
-x_tr[x_tr == -999] = np.nan
+    # Replace -999 by NaN
+    x_tr[x_tr == -999] = 0
 
-# x_tr : original features
-# x_tr1 : removes all features with NaNs. Resulting shape (250000, 19)
-# x_tr2 : removes all features with > 70% NaNs and replaces the rest of the Nans with the feature mean (250000, 23)
+    # x_tr : original features
+    # x_tr1 : removes all features with NaNs. Resulting shape (250000, 19)
+    # x_tr2 : removes all features with > 70% NaNs and replaces the rest of the Nans with the feature mean (250000, 23)
 
-x_tr1, x_te1 = remove_features(x_tr, x_te)
-x_tr2, x_te2 = remove_features(x_tr, x_te, threshold=0.7, replace_with_mean=True)
+    x_tr1, x_te1 = remove_features(x_tr, x_te)
+    x_tr2, x_te2 = remove_features(x_tr, x_te, threshold=0.7, replace_with_mean=True)
 
-x_tr1, x_te1 = standardize_features(x_tr1, x_te1)
-x_tr2, x_te2 = standardize_features(x_tr2, x_te2)
+    x_tr1, x_te1 = standardize_features(x_tr1, x_te1)
+    x_tr2, x_te2 = standardize_features(x_tr2, x_te2)
 
-x_tr = x_tr2
-x_te = x_te2
+    x_tr = x_tr2
+    x_te = x_te2
+    return x_tr, y_tr, x_te, y_te
+
+def print_loss(model_name, losses):
+    loss_tr, loss_te, avg_accuarcy = losses
+    print("Cross Validation",model_name, loss_tr, loss_te, avg_accuarcy)
 
 def try_different_model(x_tr, x_te, y_tr):
     lambda_ = 2.27584592607e-05
@@ -124,31 +129,31 @@ def try_different_model(x_tr, x_te, y_tr):
     #weights_ls_sgd, loss_ls_sgd = least_squares_SGD(y_tr, x_tr, initial_w, max_iters, gamma)
     #print("Loss least square SGD: ", loss_ls_sgd)
 
-    for degree in range(1, 5):
+    for degree in range(1, 6):
          print("Degree = ", degree)
 
          k_indices = build_k_indices(y_tr, 10, 1)
          model_function = lambda y, x: least_squares(y, x)
-         loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
-         print("CrossVal. Least Square: ", loss_tr, loss_te)
+         losses = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
+         print_loss("Least Square", losses)
 
          model_function = lambda y, x: logistic_regression(y, x, np.zeros(x.shape[1]), max_iters, gamma)
-         loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
-         print("CrossVal. Loss Logistic Regression: ", loss_tr, loss_te)
+         losses = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
+         print_loss("Logistic Regression", losses)
 
          model_function = lambda y, x: reg_logistic_regression(y, x, lambda_, np.zeros(x.shape[1]), max_iters, gamma)
-         loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
-         print("CrossVal. Reg Loss Logistic Regression: ", loss_tr, loss_te)
+         losses = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
+         print_loss("Logistic Reg Regression", losses)
 
          model_function = lambda y, x: ridge_regression(y, x, lambda_)
-         loss_tr, loss_te = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
-         print("CrossVal. Ridge Regression: ", loss_tr, loss_te)
+         losses = cross_validation(y_tr, x_tr, k_indices, degree, model_function)
+         print_loss("Logistic Ridge Regression", losses)
 
          print("")
 
-
      #return lr_weights
 
+x_tr, y_tr, x_te, y_te = read_train_test()
 try_different_model(x_tr, x_te, y_tr)
 #predict_and_generate_file(optimal_weiths, x_te, y_tr)
 
