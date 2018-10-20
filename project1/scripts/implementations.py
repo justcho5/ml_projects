@@ -56,20 +56,21 @@ def compute_rmse(y, tx, w):
 
 def compute_gradient(y, tx, w):
     N = y.shape[0]
-    e = np.subtract(y, np.dot(tx, w))
-    gradient = -(1 / N) * np.dot((tx.T), (e))
+    e = y - (tx @ w)
+    gradient = -(1 / N) * (tx.T @ e )
     return gradient
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     # Linear regression using gradient descent
     w = initial_w
+
     for n_iter in range(max_iters):
         gradient = compute_gradient(y, tx, w)
-        loss = compute_mse(y, tx, w)
-        w = w - gamma * (gradient)
+        w = w - gamma * gradient
         # store w and loss
 
+    loss = compute_mse(y, tx, w)
     return (w, loss)
 
 
