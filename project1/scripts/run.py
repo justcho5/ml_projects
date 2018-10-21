@@ -83,7 +83,7 @@ def read_train_test():
     # print(x_te)
 
     # Replace -999 by 0
-    # x_tr[x_tr == -999] = 0
+    x_tr[x_tr == -999] = 0
 
     # x_tr : original features
     # x_tr1 : removes all features with NaNs. Resulting shape (250000, 19)
@@ -122,7 +122,9 @@ class Model:
         self.weights = weight
 
     def print(self):
-        print(self.degree, self.loss_training, self.loss_test, self.accuarcy, self.name)
+        print(self.degree, np.round(self.loss_training, 4),
+              np.round(self.loss_test, 4),
+              np.round(self.accuarcy, 4), self.name)
 
 
 def try_different_models(x_training,
