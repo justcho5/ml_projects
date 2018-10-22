@@ -123,7 +123,9 @@ class Model:
         self.weights = weight
 
     def print(self):
-        print(self.degree, self.loss_training, self.loss_test, self.accuarcy, self.name)
+        print(self.degree, np.round(self.loss_training, 4),
+              np.round(self.loss_test, 4),
+              np.round(self.accuarcy, 4), self.name)
 
 
 def try_different_models(x_training,
