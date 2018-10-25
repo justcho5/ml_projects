@@ -57,7 +57,7 @@ def compute_rmse(y, tx, w):
 def compute_gradient(y, tx, w):
     N = y.shape[0]
     e = y - (tx @ w)
-    gradient = -(1 / N) * (tx.T @ e )
+    gradient = -(1 / N) * (tx.T @ e)
     return gradient
 
 
@@ -70,7 +70,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         w = w - gamma * gradient
         # store w and loss
 
-    loss = compute_mse(y, tx, w)
+    loss = compute_rmse(y, tx, w)
     return (w, loss)
 
 
@@ -82,7 +82,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
 
             gradient = compute_gradient(minibatch_y, minibatch_tx, w)
-            loss = compute_mse(minibatch_y, minibatch_tx, w)
+            loss = compute_rmse(minibatch_y, minibatch_tx, w)
 
             w = w - gamma * (gradient)
         # store w and loss
@@ -96,7 +96,7 @@ def least_squares(y, tx):
     b = np.dot(tx.T, y)
     w = np.linalg.solve(a, b)
     # Here I used RMSE
-    loss = np.sqrt(2 * compute_mse(y, tx, w))
+    loss = compute_rmse(y, tx, w)
     return (w, loss)
 
 
@@ -107,7 +107,7 @@ def ridge_regression(y, tx, lambda_):
     b = np.dot(tx.T, y)
     w = np.linalg.solve(a + aI, b)
     # RMSE?
-    loss = np.sqrt(2 * compute_mse(y, tx, w))
+    loss = compute_rmse(y, tx, w)
     return (w, loss)
 
 
@@ -124,6 +124,13 @@ def logistic_regression_gradient(x, y, h):
     r = x.T @ a
     return r / y.shape[0]
 
+
+def reg_log_regression_gradient(x, y, h, w, lambda_):
+    grad = logistic_regression_gradient(x, y, h)
+    grad[1:] = grad[1:] + (lambda_ / y.shape[0]) * w[1:]
+    return grad
+
+
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
     z = tx @ initial_w
@@ -133,10 +140,11 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     for n_iter in range(max_iters):
         gradient = logistic_regression_gradient(tx, y, h)
-        loss = logistic_regression_loss(y, h)
+        # loss = logistic_regression_loss(y, h)
         w = w - gamma * (gradient)
-
+    loss = compute_rmse(y, tx, w)
     return (w, loss)
+
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
@@ -146,11 +154,11 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w
 
     for n_iter in range(max_iters):
-        gradient = logistic_regression_gradient(tx, y, h)
+        gradient = reg_log_regression_gradient(tx, y, h, w, lambda_)
 
         w = w - gamma * (gradient)
 
-        regularization = lambda_ / 2 * np.sum(w ** 2)
-        loss = logistic_regression_loss(y, h) + regularization
-
+        # regularization = lambda_ / 2 * np.sum(w ** 2)
+        # loss = logistic_regression_loss(y, h) + regularization
+    loss = compute_rmse(y, tx, w)
     return (w, loss)

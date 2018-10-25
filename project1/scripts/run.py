@@ -5,7 +5,7 @@ from implementations import (
     ridge_regression,
     logistic_regression,
     reg_logistic_regression,
-    build_poly
+    build_poly,
 )
 
 from helpers import load_csv_data, predict_labels, create_csv_submission
@@ -111,11 +111,12 @@ class Model:
 
     def run(self, y_training, x_training, k_indices, model_function):
         print(self.degree, "Run", self.name)
-        (loss_training, loss_test, accuracy) = cross_validation(y_training, x_training,
-                                                                k_indices, self.degree, model_function)
+        (loss_training, loss_test, accuracy) = cross_validation(
+            y_training, x_training, k_indices, self.degree, model_function
+        )
         self.loss_training = loss_training
         self.loss_test = loss_test
-        self.accuarcy = accuracy
+        self.accuracy = accuracy
 
         # run it with the whole data set
         extended_training_set = build_poly(x_training, self.degree)
@@ -123,13 +124,16 @@ class Model:
         self.weights = weight
 
     def print(self):
-        print(self.degree, np.round(self.loss_training, 4),
-              np.round(self.loss_test, 4),
-              np.round(self.accuarcy, 4), self.name)
+        print(
+            self.degree,
+            np.round(self.loss_training, 4),
+            np.round(self.loss_test, 4),
+            np.round(self.accuracy, 4),
+            self.name,
+        )
 
 
-def try_different_models(x_training,
-                         y_training):
+def try_different_models(x_training, y_training):
     print("Try different models")
 
     # Let's run this in a pool, so we can use all the available CPU Cores
@@ -142,7 +146,9 @@ def try_different_models(x_training,
         # submit jobs to try all degrees
         best_model_for_degree = pool.map(try_all_models_for_degree, arguments)
 
-        best_overall_model =  min(best_model_for_degree, key=lambda model: model.loss_test)
+        best_overall_model = min(
+            best_model_for_degree, key=lambda model: model.loss_test
+        )
         return best_overall_model
 
 
@@ -152,26 +158,34 @@ def try_all_models_for_degree(degree_and_data):
 
     lambda_ = 2.27584592607e-05
     max_iters = 100
-    gamma = 1 / (max_iters**10)
+    gamma = 1 / (max_iters ** 10)
 
     k_indices = build_k_indices(y_tr, 10)
 
     m_least_square = Model("Least Square", degree)
     m_least_square.run(y_training, x_training, k_indices, least_squares)
 
-    model_function = lambda y, x: least_squares_GD(y, x, np.zeros(x.shape[1]), max_iters, gamma)
+    model_function = lambda y, x: least_squares_GD(
+        y, x, np.zeros(x.shape[1]), max_iters, gamma
+    )
     m_least_square_gd = Model("Least Square GD", degree)
     m_least_square_gd.run(y_training, x_training, k_indices, model_function)
 
-    model_function = lambda y, x: least_squares_SGD(y, x, np.zeros(x.shape[1]), max_iters, gamma)
+    model_function = lambda y, x: least_squares_SGD(
+        y, x, np.zeros(x.shape[1]), max_iters, gamma
+    )
     m_least_square_sgd = Model("Least Square SGD", degree)
     m_least_square_sgd.run(y_training, x_training, k_indices, model_function)
 
-    model_function = lambda y, x: logistic_regression(y, x, np.zeros(x.shape[1]), max_iters, gamma)
+    model_function = lambda y, x: logistic_regression(
+        y, x, np.zeros(x.shape[1]), max_iters, gamma
+    )
     m_logistic_regression = Model("Logistic Regression", degree)
     m_logistic_regression.run(y_training, x_training, k_indices, model_function)
 
-    model_function = lambda y, x: reg_logistic_regression(y, x, lambda_, np.zeros(x.shape[1]), max_iters, gamma)
+    model_function = lambda y, x: reg_logistic_regression(
+        y, x, lambda_, np.zeros(x.shape[1]), max_iters, gamma
+    )
     m_reg_logistic_regression = Model("Reg. Logistic Regression", degree)
     m_reg_logistic_regression.run(y_training, x_training, k_indices, model_function)
 
@@ -179,9 +193,14 @@ def try_all_models_for_degree(degree_and_data):
     m_ridge_regression = Model("Ridge Regression", degree)
     m_ridge_regression.run(y_training, x_training, k_indices, model_function)
 
-    all_models = [m_least_square, m_logistic_regression,
-                  m_least_square_gd, m_least_square_sgd,
-                  m_reg_logistic_regression, m_ridge_regression]
+    all_models = [
+        m_least_square,
+        m_logistic_regression,
+        m_least_square_gd,
+        m_least_square_sgd,
+        m_reg_logistic_regression,
+        m_ridge_regression,
+    ]
 
     # After all are done, print result
     for each_model in all_models:
@@ -190,6 +209,7 @@ def try_all_models_for_degree(degree_and_data):
     # get best model based on the loss
     best_model = min(all_models, key=lambda each: each.loss_test)
     return best_model
+
 
 np.random.seed(10)
 x_tr, y_tr, x_te, y_te, ids_te = read_train_test()
