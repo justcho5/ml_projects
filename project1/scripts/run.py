@@ -62,7 +62,17 @@ def standardize_features(x_tr,x_te):
      return x_tr, x_te
     #     print("First five train rows standardized: ", x_tr)
     #     print("First five test rows standardized: ", x_te)
-    
+
+def standardize_features_2(x_te):
+     mean_te = np.mean(x_te, axis=0)
+     std_te = np.std(x_te, axis=0)
+     x_te = (x_te - mean_te) / std_te
+     #return x_tr, x_te
+     #x_tr = (x_tr - np.amin(x_tr, axis= 0 ))/(np.amax(x_tr, axis = 0) - np.amin(x_tr, axis = 0))
+     #x_te = (x_te - np.amin(x_te, axis= 0 ))/(np.amax(x_te, axis = 0 ) - np.amin(x_te, axis = 0))
+     return x_te
+    #     print("First five train rows standardized: ", x_tr)
+    #     print("First five test rows standardized: ", x_te)
 
 def predict_and_generate_file(weights, x_te, ids_te):
     print("Predict for test data")
@@ -85,6 +95,7 @@ def read_train_test():
 
     # Replace -999 by 0
     x_tr[x_tr == -999] = 0
+    x_te[x_te == -999] = 0
 
     # x_tr : original features
     # x_tr1 : removes all features with NaNs. Resulting shape (250000, 19)
@@ -140,7 +151,7 @@ def try_different_models(x_training, y_training):
     # 8 ist just a number which I've chosen ( no deeper meaning )
     with Pool(8) as pool:
         arguments = []
-        for degree in range(1, 2):
+        for degree in range(10, 11):
             arguments.append((degree, x_training, y_training))
 
         # submit jobs to try all degrees
@@ -156,43 +167,47 @@ def try_all_models_for_degree(degree_and_data):
     degree, x_training, y_training = degree_and_data
     print("Start Degree = ", degree)
 
-    lambda_ = 2.27584592607e-05
-    max_iters = 100
-    gamma = 1 / (max_iters ** 10)
+    lambda_ = 0.0001
+    max_iters = 100**2
+    gamma = 0.0005
 
     k_indices = build_k_indices(y_tr, 10)
+    '''
+    #m_least_square = Model("Least Square", degree)
+    #m_least_square.run(y_training, x_training, k_indices, least_squares)
 
-    m_least_square = Model("Least Square", degree)
-    m_least_square.run(y_training, x_training, k_indices, least_squares)
-
-    model_function = lambda y, x: least_squares_GD(
-        y, x, np.zeros(x.shape[1]), max_iters, gamma
-    )
-    m_least_square_gd = Model("Least Square GD", degree)
-    m_least_square_gd.run(y_training, x_training, k_indices, model_function)
-
-    model_function = lambda y, x: least_squares_SGD(
-        y, x, np.zeros(x.shape[1]), max_iters, gamma
-    )
-    m_least_square_sgd = Model("Least Square SGD", degree)
-    m_least_square_sgd.run(y_training, x_training, k_indices, model_function)
-
+    #model_function = lambda y, x: least_squares_GD(
+    #    y, x, np.zeros(x.shape[1]), max_iters, gamma
+    #)
+    #m_least_square_gd = Model("Least Square GD", degree)
+    #m_least_square_gd.run(y_training, x_training, k_indices, model_function)
+    
+    
+    #model_function = lambda y, x: least_squares_SGD(
+    #    y, x, np.zeros(x.shape[1]), max_iters, gamma
+    #)
+    #m_least_square_sgd = Model("Least Square SGD", degree)
+    #m_least_square_sgd.run(y_training, x_training, k_indices, model_function)
+    
+    
     model_function = lambda y, x: logistic_regression(
         y, x, np.zeros(x.shape[1]), max_iters, gamma
     )
     m_logistic_regression = Model("Logistic Regression", degree)
     m_logistic_regression.run(y_training, x_training, k_indices, model_function)
 
+    
     model_function = lambda y, x: reg_logistic_regression(
         y, x, lambda_, np.zeros(x.shape[1]), max_iters, gamma
     )
     m_reg_logistic_regression = Model("Reg. Logistic Regression", degree)
     m_reg_logistic_regression.run(y_training, x_training, k_indices, model_function)
-
+    '''
     model_function = lambda y, x: ridge_regression(y, x, lambda_)
     m_ridge_regression = Model("Ridge Regression", degree)
     m_ridge_regression.run(y_training, x_training, k_indices, model_function)
-
+    
+    '''
     all_models = [
         m_least_square,
         m_logistic_regression,
@@ -200,6 +215,9 @@ def try_all_models_for_degree(degree_and_data):
         m_least_square_sgd,
         m_reg_logistic_regression,
         m_ridge_regression,
+    ]
+    '''
+    all_models = [m_ridge_regression
     ]
 
     # After all are done, print result
@@ -219,5 +237,6 @@ print("Best model is:")
 best_overall_model.print()
 
 print(best_overall_model.weights)
-extended_test_feature = build_poly(x_te, best_overall_model.degree)
+std_x_te = standardize_features_2(x_te)
+extended_test_feature = build_poly(std_x_te, best_overall_model.degree)
 predict_and_generate_file(best_overall_model.weights, extended_test_feature, ids_te)

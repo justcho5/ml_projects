@@ -79,7 +79,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
 
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
 
             gradient = compute_gradient(minibatch_y, minibatch_tx, w)
             loss = compute_rmse(minibatch_y, minibatch_tx, w)
