@@ -64,8 +64,9 @@ def standardize_features_before(x_tr, x_te):
 def standardize_features(x_tr, x_te):
     # Skip first column
     mean_tr = np.mean(x_tr[:, 1:], axis=0)
-
     std_tr = np.std(x_tr[:, 1:], axis=0)
+    print(std_tr)
+    print(std_tr.shape)
     x_tr[:, 1:] = (x_tr[:, 1:] - mean_tr) / std_tr
     x_te[:, 1:] = (x_te[:, 1:] - mean_tr) / std_tr
 
@@ -113,53 +114,20 @@ def read_train_test():
     x_tr[x_tr == -999] = np.nan
     x_te[x_te == -999] = np.nan
 
-    # Dataset 1: Remove all columns with any NaNs
-    x_tr1, x_te1 = change_features(x_tr, x_te)
-
-    # Dataset 2: Replace all NaNs with mean
-    x_tr2, x_te2 = change_features(x_tr, x_te, threshold=1, replace_with_mean=True)
-
-    # Dataset 3: Replace all NaNs with zero
-    x_tr3, x_te3 = change_features(x_tr, x_te, threshold=1, replace_with_zero=True)
-
-    # Dataset 4: Remove all columns with >70% NaNs and replace the rest with mean
-    x_tr4, x_te4 = change_features(x_tr, x_te, threshold=0.7, replace_with_mean=True)
-
-    # Dataset 5: Remove all columns with >70% NaNs and replace the rest with zero
-    x_tr5, x_te5 = change_features(x_tr, x_te, threshold=0.7, replace_with_zero=True)
-
-    # print("Pre process: initial {}, after cleaning {}".format(x_tr.shape, x_tr2.shape))
-    # x_tr = x_tr5
-    # x_te = x_te5
-    # Dataset 6: Dataset 5 plus build_poly 7
-    x_tr5_norm, x_te5_norm = standardize_features_before(x_tr5, x_te5)
-    x_tr6 = build_poly(x_tr5_norm, 9)
-    x_te6 = build_poly(x_te5_norm, 9)
-
-    x_tr7, x_te7 = combine(x_tr5, x_te5)
-
-    # build_poly and combinations
-    x_tr8 = np.c_[x_tr6, x_tr7]
-    x_te8 = np.c_[x_te6, x_te7]
-
-    # Dataset 9: Remove columns 20, 18, 15
     index = [20, 18, 15]
-    x_te9 = np.delete(x_te, index, axis=1)
-    x_tr9 = np.delete(x_tr, index, axis=1)
-    x_tr9_comb, x_te9_comb = combine(x_tr9, x_te9)
-    x_tr9_comb[np.isnan(x_tr9_comb)] = 0
-    x_te9_comb[np.isnan(x_te9_comb)] = 0
-    x_tr9[np.isnan(x_tr9)] = 0
-    x_te9[np.isnan(x_te9)] = 0
-    x_tr9, x_te9 = standardize_features_before(x_tr9, x_te9)
-    x_tr9 = build_poly(x_tr9, 9)
-    x_te9 = build_poly(x_te9, 9)
-    x_tr10 = np.c_[x_tr9, x_tr9_comb]
-    x_te10 = np.c_[x_te9, x_te9_comb]
+    x_te = np.delete(x_te, index, axis=1)
+    x_tr = np.delete(x_tr, index, axis=1)
 
-    x_tr = x_tr10
-    x_te = x_te10
-    return x_tr, y_tr, x_te, y_te, ids_te
+    x_tr1, x_te1 = combine(x_tr, x_te)
+    x_tr1[np.isnan(x_tr1)] = 0
+    x_te1[np.isnan(x_te1)] = 0
+    x_tr[np.isnan(x_tr)] = 0
+    x_te[np.isnan(x_te)] = 0
+    x_tr, x_te = standardize_features_before(x_tr, x_te)
+    x_tr = np.c_[build_poly(x_tr, 9), x_tr1]
+    x_te = np.c_[build_poly(x_te, 9), x_te1]
+    # print(x_tr[:1])
+    return x_tr1, y_tr, x_te1, y_te, ids_te
 
 
 def cross_validation(y, x, k_indices, model_function):
