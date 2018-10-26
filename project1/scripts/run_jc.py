@@ -46,6 +46,18 @@ def change_features(
     if replace_with_zero:
         x_tr = np.nan_to_num(x_tr)
         x_te = np.nan_to_num(x_te)
+        
+    # 20 PRI_met_phi
+    # 18 PRI_lep_phi
+    # 15 PRI_tau_phi
+    # 23 PRI_jet_leading_phi
+    # 26 PRI_jet_subleading_phi
+    # 14 PRI_tau_eta
+    # 17 PRI_lep_eta
+
+    index = [20, 18, 15]
+    x_te = np.delete(x_te, index, axis=1)
+    x_tr = np.delete(x_tr, index, axis=1)
 
     return x_tr, x_te
 
@@ -111,9 +123,42 @@ def read_train_test():
     # print(x_te)
 
     # Replace -999 by 0
-    x_tr[x_tr == -999] = np.nan
-    x_te[x_te == -999] = np.nan
+    x_tr[x_tr == -999] = 0
+    x_te[x_te == -999] = 0
 
+<<<<<<< HEAD
+=======
+    # Dataset 1: Remove all columns with any NaNs
+    x_tr1, x_te1 = change_features(x_tr, x_te)
+
+    # Dataset 2: Replace all NaNs with mean
+    x_tr2, x_te2 = change_features(x_tr, x_te, threshold=1, replace_with_mean=True)
+
+    # Dataset 3: Replace all NaNs with zero
+    x_tr3, x_te3 = change_features(x_tr, x_te, threshold=1, replace_with_zero=True)
+
+    # Dataset 4: Remove all columns with >70% NaNs and replace the rest with mean
+    x_tr4, x_te4 = change_features(x_tr, x_te, threshold=0.7, replace_with_mean=True)
+
+    # Dataset 5: Remove all columns with >70% NaNs and replace the rest with zero
+    x_tr5, x_te5 = change_features(x_tr, x_te, threshold=0.7, replace_with_zero=True)
+
+    # print("Pre process: initial {}, after cleaning {}".format(x_tr.shape, x_tr2.shape))
+    # x_tr = x_tr5
+    # x_te = x_te5
+    # Dataset 6: Dataset 5 plus build_poly 7
+    x_tr5_norm, x_te5_norm = standardize_features_before(x_tr5, x_te5)
+    x_tr6 = build_poly(x_tr5_norm, 9)
+    x_te6 = build_poly(x_te5_norm, 9)
+
+    x_tr7, x_te7 = combine(x_tr6, x_te6)
+
+    # build_poly and combinations
+    x_tr8 = np.c_[x_tr6, x_tr7]
+    x_te8 = np.c_[x_te6, x_te7]
+
+    # Dataset 9: Remove columns 20, 18, 15
+>>>>>>> 345df4de1bf1cd0c2c14172b766a8d259a770b03
     index = [20, 18, 15]
     x_te = np.delete(x_te, index, axis=1)
     x_tr = np.delete(x_tr, index, axis=1)
@@ -204,7 +249,7 @@ def try_different_models(x_training, y_training):
         best_model_for_degree = pool.map(try_all_models_for_degree, arguments)
 
         best_overall_model = min(
-            best_model_for_degree, key=lambda model: model.loss_test
+            best_model_for_degree, key=lambda model: model.accuracy
         )
         return best_overall_model
 
@@ -266,7 +311,7 @@ def try_all_models_for_degree(degree_and_data):
         each_model.print()
 
     # get best model based on the loss
-    best_model = min(all_models, key=lambda each: each.loss_test)
+    best_model = min(all_models, key=lambda each: each.accuracy)
     return best_model
 
 

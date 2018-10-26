@@ -44,7 +44,7 @@ def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
     # 14 PRI_tau_eta
     # 17 PRI_lep_eta
 
-    index = [20, 18, 15]
+    index = [20, 18, 15, 23, 26]
     x_te = np.delete(x_te, index, axis=1)
     x_tr = np.delete(x_tr, index, axis=1)
 
@@ -52,27 +52,19 @@ def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
 
 
 def standardize_features(x_tr,x_te):
-     mean_tr = np.mean(x_tr, axis=0)
-     std_tr = np.std(x_tr, axis=0)
-     x_tr = (x_tr - mean_tr) / std_tr
-     x_te = (x_te - mean_tr) / std_tr
+    
+    mean_tr = np.mean(x_tr[:, 1:], axis=0)
+
+    std_tr = np.std(x_tr[:, 1:], axis=0)
+    x_tr[:, 1:] = (x_tr[:, 1:] - mean_tr) / std_tr
+    x_te[:, 1:] = (x_te[:, 1:] - mean_tr) / std_tr
      #return x_tr, x_te
      #x_tr = (x_tr - np.amin(x_tr, axis= 0 ))/(np.amax(x_tr, axis = 0) - np.amin(x_tr, axis = 0))
      #x_te = (x_te - np.amin(x_te, axis= 0 ))/(np.amax(x_te, axis = 0 ) - np.amin(x_te, axis = 0))
-     return x_tr, x_te
+    return x_tr, x_te
     #     print("First five train rows standardized: ", x_tr)
     #     print("First five test rows standardized: ", x_te)
 
-def standardize_features_2(x_te):
-     mean_te = np.mean(x_te, axis=0)
-     std_te = np.std(x_te, axis=0)
-     x_te = (x_te - mean_te) / std_te
-     #return x_tr, x_te
-     #x_tr = (x_tr - np.amin(x_tr, axis= 0 ))/(np.amax(x_tr, axis = 0) - np.amin(x_tr, axis = 0))
-     #x_te = (x_te - np.amin(x_te, axis= 0 ))/(np.amax(x_te, axis = 0 ) - np.amin(x_te, axis = 0))
-     return x_te
-    #     print("First five train rows standardized: ", x_tr)
-    #     print("First five test rows standardized: ", x_te)
 
 def predict_and_generate_file(weights, x_te, ids_te):
     print("Predict for test data")
@@ -146,32 +138,41 @@ class Model:
 
 def try_different_models(x_training, y_training):
     print("Try different models")
+    lambdas= np.linspace(0.00001,0.00015,100)
 
     # Let's run this in a pool, so we can use all the available CPU Cores
     # 8 ist just a number which I've chosen ( no deeper meaning )
     with Pool(8) as pool:
         arguments = []
-        for degree in range(10, 11):
-            arguments.append((degree, x_training, y_training))
-
+        
+        for degree in range(9, 11):
+            for lambda_ in lambdas:
+                arguments.append((degree, lambda_, x_training, y_training))
+            
         # submit jobs to try all degrees
         best_model_for_degree = pool.map(try_all_models_for_degree, arguments)
-
         best_overall_model = min(
-            best_model_for_degree, key=lambda model: model.loss_test
+            best_model_for_degree, key=lambda model: model.accuracy
         )
+        
         return best_overall_model
 
 
 def try_all_models_for_degree(degree_and_data):
-    degree, x_training, y_training = degree_and_data
+    degree, lambda_, x_training, y_training = degree_and_data
     print("Start Degree = ", degree)
+    print("StartLlambda = ", lambda_)
 
-    lambda_ = 0.0001
+    #lambda_ = 0.0001
     max_iters = 100**2
     gamma = 0.0005
-
+    
     k_indices = build_k_indices(y_tr, 10)
+    
+    
+    
+    
+    
     '''
     #m_least_square = Model("Least Square", degree)
     #m_least_square.run(y_training, x_training, k_indices, least_squares)
@@ -225,18 +226,27 @@ def try_all_models_for_degree(degree_and_data):
         each_model.print()
 
     # get best model based on the loss
-    best_model = min(all_models, key=lambda each: each.loss_test)
+    best_model = min(all_models, key=lambda each: each.accuracy)
     return best_model
 
 
 np.random.seed(10)
 x_tr, y_tr, x_te, y_te, ids_te = read_train_test()
+x_tr, x_te = standardize_features(x_tr, x_te)
 
 best_overall_model = try_different_models(x_tr, y_tr)
 print("Best model is:")
 best_overall_model.print()
 
+
 print(best_overall_model.weights)
-std_x_te = standardize_features_2(x_te)
-extended_test_feature = build_poly(std_x_te, best_overall_model.degree)
-predict_and_generate_file(best_overall_model.weights, extended_test_feature, ids_te)
+
+extended_test_feature_te = build_poly(x_te, best_overall_model.degree)
+extended_test_feature_tr = build_poly(x_tr, best_overall_model.degree)
+extended_test_feature_tr, extended_test_feature_te = standardize_features(extended_test_feature_tr, extended_test_feature_te)
+predict_and_generate_file(best_overall_model.weights, extended_test_feature_te, ids_te)
+
+
+    
+    
+    
