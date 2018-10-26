@@ -62,6 +62,17 @@ def change_features(
     return x_tr, x_te
 
 
+def standardize_features_before(x_tr, x_te):
+    # Skip first column
+    mean_tr = np.mean(x_tr, axis=0)
+
+    std_tr = np.std(x_tr, axis=0)
+    x_tr = (x_tr - mean_tr) / std_tr
+    x_te = (x_te - mean_tr) / std_tr
+
+    return x_tr, x_te
+
+
 def standardize_features(x_tr, x_te):
     # Skip first column
     mean_tr = np.mean(x_tr[:, 1:], axis=0)
@@ -133,8 +144,9 @@ def read_train_test():
     # x_tr = x_tr5
     # x_te = x_te5
     # Dataset 6: Dataset 5 plus build_poly 7
-    x_tr6 = build_poly(x_tr, 9)
-    x_te6 = build_poly(x_te, 9)
+    x_tr5_norm, x_te5_norm = standardize_features_before(x_tr5, x_te5)
+    x_tr6 = build_poly(x_tr5_norm, 9)
+    x_te6 = build_poly(x_te5_norm, 9)
 
     x_tr7, x_te7 = combine(x_tr6, x_te6)
 
@@ -142,8 +154,23 @@ def read_train_test():
     x_tr8 = np.c_[x_tr6, x_tr7]
     x_te8 = np.c_[x_te6, x_te7]
 
-    x_tr = x_tr6
-    x_te = x_te6
+    # Dataset 9: Remove columns 20, 18, 15
+    index = [20, 18, 15]
+    x_te9 = np.delete(x_te, index, axis=1)
+    x_tr9 = np.delete(x_tr, index, axis=1)
+    x_tr9_comb, x_te9_comb = combine(x_tr9, x_te9)
+    x_tr9_comb[np.isnan(x_tr9_comb)] = 0
+    x_te9_comb[np.isnan(x_te9_comb)] = 0
+    x_tr9[np.isnan(x_tr9)] = 0
+    x_te9[np.isnan(x_te9)] = 0
+    x_tr9, x_te9 = standardize_features_before(x_tr9, x_te9)
+    x_tr9 = build_poly(x_tr9, 9)
+    x_te9 = build_poly(x_te9, 9)
+    x_tr10 = np.c_[x_tr9, x_tr9_comb]
+    x_te10 = np.c_[x_te9, x_te9_comb]
+
+    x_tr = x_tr10
+    x_te = x_te10
     return x_tr, y_tr, x_te, y_te, ids_te
 
 
