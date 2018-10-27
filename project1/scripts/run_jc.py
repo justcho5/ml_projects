@@ -46,7 +46,7 @@ def change_features(
     if replace_with_zero:
         x_tr = np.nan_to_num(x_tr)
         x_te = np.nan_to_num(x_te)
-        
+
     # 20 PRI_met_phi
     # 18 PRI_lep_phi
     # 15 PRI_tau_phi
@@ -65,8 +65,9 @@ def change_features(
 def standardize_features_before(x_tr, x_te):
     # Skip first column
     mean_tr = np.mean(x_tr, axis=0)
-
+    # print("MEAN ", mean_tr)
     std_tr = np.std(x_tr, axis=0)
+    # print("STD ", std_tr)
     x_tr = (x_tr - mean_tr) / std_tr
     x_te = (x_te - mean_tr) / std_tr
 
@@ -77,8 +78,8 @@ def standardize_features(x_tr, x_te):
     # Skip first column
     mean_tr = np.mean(x_tr[:, 1:], axis=0)
     std_tr = np.std(x_tr[:, 1:], axis=0)
-    print(std_tr)
-    print(std_tr.shape)
+    # print(std_tr)
+    # print(std_tr.shape)
     x_tr[:, 1:] = (x_tr[:, 1:] - mean_tr) / std_tr
     x_te[:, 1:] = (x_te[:, 1:] - mean_tr) / std_tr
 
@@ -98,9 +99,13 @@ def combine(x_tr, x_te):
             if (i, j) not in s:
                 if (j, i) not in s:
                     s.append((i, j))
+                    # print("LOOK HERE ", i, j)
+                    # print(x_tr[:, i], x_tr[:, j])
+                    # print("RESULT ", x_tr[:, i] * x_tr[:, j])
                     result_tr = np.c_[result_tr, x_tr[:, i] * x_tr[:, j]]
                     result_te = np.c_[result_te, x_te[:, i] * x_te[:, j]]
-    return result_tr, result_te
+                    # print("RESULTTTT ", result_tr)
+    return result_tr[:, 1:], result_te[:, 1:]
 
 
 def predict_and_generate_file(weights, x_te, ids_te):
@@ -123,42 +128,9 @@ def read_train_test():
     # print(x_te)
 
     # Replace -999 by 0
-    x_tr[x_tr == -999] = 0
-    x_te[x_te == -999] = 0
+    x_tr[x_tr == -999] = np.nan
+    x_te[x_te == -999] = np.nan
 
-<<<<<<< HEAD
-=======
-    # Dataset 1: Remove all columns with any NaNs
-    x_tr1, x_te1 = change_features(x_tr, x_te)
-
-    # Dataset 2: Replace all NaNs with mean
-    x_tr2, x_te2 = change_features(x_tr, x_te, threshold=1, replace_with_mean=True)
-
-    # Dataset 3: Replace all NaNs with zero
-    x_tr3, x_te3 = change_features(x_tr, x_te, threshold=1, replace_with_zero=True)
-
-    # Dataset 4: Remove all columns with >70% NaNs and replace the rest with mean
-    x_tr4, x_te4 = change_features(x_tr, x_te, threshold=0.7, replace_with_mean=True)
-
-    # Dataset 5: Remove all columns with >70% NaNs and replace the rest with zero
-    x_tr5, x_te5 = change_features(x_tr, x_te, threshold=0.7, replace_with_zero=True)
-
-    # print("Pre process: initial {}, after cleaning {}".format(x_tr.shape, x_tr2.shape))
-    # x_tr = x_tr5
-    # x_te = x_te5
-    # Dataset 6: Dataset 5 plus build_poly 7
-    x_tr5_norm, x_te5_norm = standardize_features_before(x_tr5, x_te5)
-    x_tr6 = build_poly(x_tr5_norm, 9)
-    x_te6 = build_poly(x_te5_norm, 9)
-
-    x_tr7, x_te7 = combine(x_tr6, x_te6)
-
-    # build_poly and combinations
-    x_tr8 = np.c_[x_tr6, x_tr7]
-    x_te8 = np.c_[x_te6, x_te7]
-
-    # Dataset 9: Remove columns 20, 18, 15
->>>>>>> 345df4de1bf1cd0c2c14172b766a8d259a770b03
     index = [20, 18, 15]
     x_te = np.delete(x_te, index, axis=1)
     x_tr = np.delete(x_tr, index, axis=1)
@@ -168,11 +140,17 @@ def read_train_test():
     x_te1[np.isnan(x_te1)] = 0
     x_tr[np.isnan(x_tr)] = 0
     x_te[np.isnan(x_te)] = 0
+    print("1")
     x_tr, x_te = standardize_features_before(x_tr, x_te)
-    x_tr = np.c_[build_poly(x_tr, 9), x_tr1]
-    x_te = np.c_[build_poly(x_te, 9), x_te1]
-    # print(x_tr[:1])
-    return x_tr1, y_tr, x_te1, y_te, ids_te
+    poly_tr = build_poly(x_tr, 9)
+    poly_te = build_poly(x_te, 9)
+    print("2")
+    x_tr1, x_te1 = standardize_features_before(x_tr1, x_te1)
+    x_tr = np.c_[poly_tr, x_tr1]
+    x_te = np.c_[poly_te, x_te1]
+    # print("CHECK ", poly_tr.shape, x_tr1.shape, x_tr.shape)
+    # print("CHECK ", poly_te.shape, x_te1.shape, x_te.shape)
+    return x_tr, y_tr, x_te, y_te, ids_te
 
 
 def cross_validation(y, x, k_indices, model_function):
@@ -262,7 +240,7 @@ def try_all_models_for_degree(degree_and_data):
     max_iters = 100 ** 2
     gamma = 0.0005
 
-    k_indices = build_k_indices(y_tr, 5)
+    k_indices = build_k_indices(y_tr, 10)
 
     # m_least_square = Model("Least Square")
     # m_least_square.run(y_training, x_training, k_indices, least_squares)
