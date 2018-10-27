@@ -44,7 +44,7 @@ def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
     # 14 PRI_tau_eta
     # 17 PRI_lep_eta
 
-    index = [20, 18, 15, 23, 26]
+    index = [20, 18, 15]
     x_te = np.delete(x_te, index, axis=1)
     x_tr = np.delete(x_tr, index, axis=1)
 
@@ -52,25 +52,43 @@ def remove_features(x_tr, x_te, threshold=0, replace_with_mean=False):
 
 
 def standardize_features(x_tr,x_te):
+    #standardization with respect to the training set
     
     mean_tr = np.mean(x_tr[:, 1:], axis=0)
-
     std_tr = np.std(x_tr[:, 1:], axis=0)
     x_tr[:, 1:] = (x_tr[:, 1:] - mean_tr) / std_tr
     x_te[:, 1:] = (x_te[:, 1:] - mean_tr) / std_tr
-     #return x_tr, x_te
-     #x_tr = (x_tr - np.amin(x_tr, axis= 0 ))/(np.amax(x_tr, axis = 0) - np.amin(x_tr, axis = 0))
-     #x_te = (x_te - np.amin(x_te, axis= 0 ))/(np.amax(x_te, axis = 0 ) - np.amin(x_te, axis = 0))
-    return x_tr, x_te
+    
+    #normalization with respect to the training set 
+    #min_tr = np.amin(x_tr[:, 1:], axis= 0 )
+    #max_tr = np.amax(x_tr[:, 1:], axis= 0 )
+    #x_tr[:, 1:] = (x_tr[:, 1:] - min_tr)/(max_tr - min_tr)
+    #x_te[:, 1:] = (x_te[:, 1:] - min_tr)/(max_tr - min_tr)
+    
     #     print("First five train rows standardized: ", x_tr)
     #     print("First five test rows standardized: ", x_te)
+    return x_tr,x_te
+    
+    
+def standardize_feature(x_tr):
+    
+    #standardization with respect to the training set
+    mean_tr = np.mean(x_tr[:, 1:], axis=0)
+    std_tr = np.std(x_tr[:, 1:], axis=0)
+    x_tr[:, 1:] = (x_tr[:, 1:] - mean_tr) / std_tr
+    
+    #normalization 
+    #min_tr = np.amin(x_tr[:, 1:], axis= 0 )
+    #max_tr = np.amax(x_tr[:, 1:], axis= 0 )
+    #x_tr[:, 1:] = (x_tr[:, 1:] - min_tr)/(max_tr - min_tr)
+    return x_tr
 
 
 def predict_and_generate_file(weights, x_te, ids_te):
     print("Predict for test data")
     y_prediction = predict_labels(weights, x_te)
 
-    print("Predictions: ", y_prediction)
+    print("Predictions: ", y_prediction) 
     print("Create submission file")
     create_csv_submission(ids_te, y_prediction, "../data/output.csv")
 
@@ -123,8 +141,10 @@ class Model:
 
         # run it with the whole data set
         extended_training_set = build_poly(x_training, self.degree)
+        extended_training_set = standardize_feature(extended_training_set)
         (weight, total_loss) = model_function(y_training, extended_training_set)
         self.weights = weight
+     
 
     def print(self):
         print(
@@ -138,20 +158,19 @@ class Model:
 
 def try_different_models(x_training, y_training):
     print("Try different models")
-    lambdas= np.linspace(0.00001,0.00015,100)
+    #lambdas= np.linspace(0.00001,0.00015,10)
 
     # Let's run this in a pool, so we can use all the available CPU Cores
     # 8 ist just a number which I've chosen ( no deeper meaning )
     with Pool(8) as pool:
         arguments = []
         
-        for degree in range(9, 11):
-            for lambda_ in lambdas:
-                arguments.append((degree, lambda_, x_training, y_training))
+        for degree in range(7, 11):
+                arguments.append((degree, x_training, y_training))
             
         # submit jobs to try all degrees
         best_model_for_degree = pool.map(try_all_models_for_degree, arguments)
-        best_overall_model = min(
+        best_overall_model = max(
             best_model_for_degree, key=lambda model: model.accuracy
         )
         
@@ -159,19 +178,15 @@ def try_different_models(x_training, y_training):
 
 
 def try_all_models_for_degree(degree_and_data):
-    degree, lambda_, x_training, y_training = degree_and_data
+    degree, x_training, y_training = degree_and_data
     print("Start Degree = ", degree)
-    print("StartLlambda = ", lambda_)
+    #print("StartLlambda = ", lambda_)
 
-    #lambda_ = 0.0001
+    lambda_ = 0.000118889
     max_iters = 100**2
     gamma = 0.0005
     
     k_indices = build_k_indices(y_tr, 10)
-    
-    
-    
-    
     
     '''
     #m_least_square = Model("Least Square", degree)
@@ -226,7 +241,7 @@ def try_all_models_for_degree(degree_and_data):
         each_model.print()
 
     # get best model based on the loss
-    best_model = min(all_models, key=lambda each: each.accuracy)
+    best_model = max(all_models, key=lambda each: each.accuracy)
     return best_model
 
 
