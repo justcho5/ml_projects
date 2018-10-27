@@ -9,6 +9,41 @@ from implementations import (
 from helpers import predict_labels
 
 
+def precision(label, prediction):
+    """
+    Return recall (tp / (tp + fn))
+    """
+
+    assert len(prediction) == len(label), "pred and label different size"
+
+    tp_ind = np.where((prediction == label) & (label == 1))
+    tp = len(tp_ind[0])
+    fp_ind = np.where((prediction != label) & (prediction == 1))
+    fp = len(fp_ind[0])
+    return 1 - (tp / (tp + fp))
+
+
+def recall(label, prediction):
+    """
+    Return recall (tp / (tp + fn))
+    """
+
+    assert len(prediction) == len(label), "pred and label different size"
+
+    tp_ind = np.where((prediction == label) & (label == 1))
+    tp = len(tp_ind[0])
+    fn_ind = np.where((prediction != label) & (label == 1))
+    fn = len(fn_ind[0])
+    return 1 - (tp / (tp + fn))
+
+
+def f1_score(label, prediction):
+    assert len(prediction) == len(label), "pred and label different size"
+
+    p = precision(label, prediction)
+    r = recall(label, prediction)
+    return 1 - (2 * p * r / (p + r))
+
 def build_k_indices(y, k_fold):
     """build k indices for k-fold."""
     num_row = y.shape[0]
@@ -49,11 +84,11 @@ def cross_validation(y, x, k_indices, degree, model_function):
 
         # False Negative (FN): we predict a label of 1 (negative), but the true label is -1.
         false_negative = np.sum(np.logical_and(predictions_y == 1, y_te == -1))
-        accuracy = false_positive / false_negative
+
+        accuracy = f1_score(y_te, predictions_y)
+        #accuracy = false_positive / false_negative
         accuracies.append(accuracy)
 
-    avg_loss_tr = np.average(losses_tr)
-    avg_loss_te = np.average(losses_te)
-    avg_accuracy = np.average(accuracies)
 
-    return avg_loss_tr, avg_loss_te, avg_accuracy
+
+    return losses_tr, losses_te, accuracies
