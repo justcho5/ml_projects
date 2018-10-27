@@ -41,12 +41,15 @@ def cross_validation(y, x, k_indices, degree, model_function):
         losses_tr.append(compute_rmse(y_tr, tx_tr, weights))
         losses_te.append(compute_rmse(y_te, tx_te, weights))
 
-        # calculated how many data-points are correctly predicted
-        # This is different from the loss of the text set, since at the end we're
-        # only interested on the prediction
+        # Predict labels using the current weights.
         predictions_y = predict_labels(weights, tx_te)
-        diff = predictions_y - y_te
-        accuracy = (len(diff) - np.count_nonzero(diff)) / len(diff)
+
+        # False Positive (FP): we predict a label of -1 (positive), but the true label is 1.
+        false_positive = np.sum(np.logical_and(predictions_y == -1, y_te == 1))
+
+        # False Negative (FN): we predict a label of 1 (negative), but the true label is -1.
+        false_negative = np.sum(np.logical_and(predictions_y == 1, y_te == -1))
+        accuracy = false_positive / false_negative
         accuracies.append(accuracy)
 
     avg_loss_tr = np.average(losses_tr)
