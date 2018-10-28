@@ -106,6 +106,7 @@ def ridge_regression(y, tx, lambda_):
     a = np.dot(tx.T, tx)
     b = np.dot(tx.T, y)
     w = np.linalg.solve(a + aI, b)
+
     # RMSE?
     loss = compute_rmse(y, tx, w)
     return (w, loss)
