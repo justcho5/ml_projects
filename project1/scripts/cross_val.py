@@ -79,14 +79,26 @@ def cross_validation(y, x, k_indices, degree, model_function):
         # Predict labels using the current weights.
         predictions_y = predict_labels(weights, tx_te)
 
-        # False Positive (FP): we predict a label of -1 (positive), but the true label is 1.
-        false_positive = np.sum(np.logical_and(predictions_y == -1, y_te == 1))
+        ## http://kawahara.ca/how-to-compute-truefalse-positives-and-truefalse-negatives-in-python-for-binary-classification-problems/
+        # True Positive (TP): we predict a label of 1 (positive), and the true label is 1.
+        TP = np.sum(np.logical_and(predictions_y == -1, y_te == -1))
 
-        # False Negative (FN): we predict a label of 1 (negative), but the true label is -1.
-        false_negative = np.sum(np.logical_and(predictions_y == 1, y_te == -1))
+        # True Negative (TN): we predict a label of 0 (negative), and the true label is 0.
+        TN = np.sum(np.logical_and(predictions_y == 1, y_te == 1))
+
+        # False Positive (FP): we predict a label of 1 (positive), but the true label is 0.
+        FP = np.sum(np.logical_and(predictions_y == -1, y_te == 1))
+
+        # False Negative (FN): we predict a label of 0 (negative), but the true label is 1.
+        FN = np.sum(np.logical_and(predictions_y == 1, y_te == -1))
+
+        A =  (TP * TN ) - (FP * FN)
+        X = np.sqrt((TP + FP)*(TP + FN)*(TN + FP)*(TN + FN))
+        MCC = A / X
 
         accuracy = f1_score(y_te, predictions_y)
         #accuracy = false_positive / false_negative
+        #accuracy = MCC
         accuracies.append(accuracy)
 
 
