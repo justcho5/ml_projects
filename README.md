@@ -2,21 +2,43 @@
 
 ## Project 1
 
-## Folder structure
+### Folder structure
 
 ```
-
 project1/                              # Contains all project files
-├── data/                              # should contains the trainig and test file
+├── data/                              # should contains the trainig and test file ( eg. test.csv and train.csv )
 └── scripts/
     ├── implementation.py
-    ├── helpesr.py
+    ├── helpers.py
     └── run.py
     └── Plot.ipynb
 ```
 
 
+**run.py**
 
-## Reproduce Results
+Main file which contains the code for training and prediction.
+
+**Plot.ipynb**
+
+
+**helpers.py**
+
+
+### Requirements
+
+The python code has been test with the following versions:
+
+```
+Python: 3.6.2
+Numpy:
+```
+
+
+
+
+
+
+
 
 
