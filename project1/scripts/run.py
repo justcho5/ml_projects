@@ -111,6 +111,10 @@ def subset(y, x):
 
 
 def subset_training(degree, lambda_, y_tr, x_tr, y_te, x_te):
+    """
+    :return: the subset tx and weights
+    """
+
     # Partition the data based on Jet Number
     y_tests, x_tests = subset(y_te, x_te)
     y_trains, x_trains = subset(y_tr, x_tr)
@@ -138,6 +142,9 @@ def subset_training(degree, lambda_, y_tr, x_tr, y_te, x_te):
 
 
 def cross_validation(y, x, k_indices, lambda_, degree):
+    """
+    :return: the f1 scores for all k-folds
+    """
     f1_scores = []
 
     # for each k-fold
@@ -175,6 +182,17 @@ def cross_validation(y, x, k_indices, lambda_, degree):
 
 
 def predict(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
+    """
+    Creates the output.csv file.
+
+    :param y_tr:  the training y
+    :param x_tr:  the training x
+    :param y_te:  the test y
+    :param x_te:  the text x
+    :param ids_te: the ids to output
+    :param degree:  the degree to use
+    :param lambda_: the lambda to use
+    """
 
     y_tests, x_tests = subset(y_te, x_te)
     y_trains, x_trains = subset(y_tr, x_tr)
@@ -208,6 +226,9 @@ def predict(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
     create_csv_submission(ids_te, predictions_y, "../data/output.csv")
 
 def predict_and_generate_file(weights, x_te, ids_te):
+    """
+    Generates the prediction file with given weights
+    """
     print("Predict for test data")
     y_prediction = predict_labels(weights, x_te)
 
@@ -217,6 +238,9 @@ def predict_and_generate_file(weights, x_te, ids_te):
 
 
 def read_file():
+    """
+    Helper class to read the file and return the test and training data.
+    """
     train_datapath = "../data/train.csv"
     test_datapath = "../data/test.csv"
 
@@ -250,6 +274,9 @@ class Model:
 
 
 def train_for_configuration(input):
+    """
+    Run training for given configuration
+    """
     degree, lambda_, y_training, x_training = input
 
     print("Start degree {} lambda {}".format(degree, lambda_))
@@ -264,6 +291,13 @@ def train_for_configuration(input):
 
 
 def do_training_for_configuration(degrees, lambdas):
+    """
+    Test for all given degrees and lambdas the model and returns
+    all models and the best model
+    :param degrees: list of degrees to test
+    :param lambdas:  list of lambdas to test
+    :return:  the list of models with the result
+    """
     np.random.seed(1)
 
     (y_tr, x_tr, ids_tr), _ = read_file()
@@ -284,6 +318,9 @@ def do_training_for_configuration(degrees, lambdas):
 
 
 def do_training():
+    """
+    Does the training with the list of models and lambdas we have tested.
+    """
     default_range = range(1, 20)
     default_lambdas = np.logspace(-20, -10, 20)
     return do_training_for_configuration(default_range, default_lambdas)
