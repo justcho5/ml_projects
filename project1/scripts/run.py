@@ -132,12 +132,17 @@ class Model:
 
     def run(self, y_training, x_training, k_indices, model_function):
         print(self.degree, "Run", self.name)
-        (loss_training, loss_test, accuracy) = cross_validation(
+        (losses_training, losses_test, f1_scores) = cross_validation(
             y_training, x_training, k_indices, self.degree, model_function
         )
-        self.loss_training = loss_training
-        self.loss_test = loss_test
-        self.accuracy = accuracy
+
+        self.loss_training = losses_training
+        self.loss_test = losses_test
+        self.f1_scores = f1_scores
+
+        self.loss_training = np.average(losses_training)
+        self.loss_test = np.average(losses_test)
+        self.f1_score = np.average(f1_scores)
 
         # run it with the whole data set
         extended_training_set = build_poly(x_training, self.degree)
@@ -151,7 +156,7 @@ class Model:
             self.degree,
             np.round(self.loss_training, 4),
             np.round(self.loss_test, 4),
-            np.round(self.accuracy, 4),
+            np.round(self.f1_score, 4),
             self.name,
         )
 
@@ -165,16 +170,16 @@ def try_different_models(x_training, y_training):
     with Pool(8) as pool:
         arguments = []
         
-        for degree in range(7, 11):
-                arguments.append((degree, x_training, y_training))
+        for degree in range(1, 21):
+            arguments.append((degree, x_training, y_training))
             
         # submit jobs to try all degrees
         best_model_for_degree = pool.map(try_all_models_for_degree, arguments)
-        best_overall_model = max(
-            best_model_for_degree, key=lambda model: model.accuracy
+        best_model = max(
+            best_model_for_degree, key=lambda model: model.f1_score
         )
         
-        return best_overall_model
+        return (best_model_for_degree, best_model)
 
 
 def try_all_models_for_degree(degree_and_data):
@@ -182,11 +187,11 @@ def try_all_models_for_degree(degree_and_data):
     print("Start Degree = ", degree)
     #print("StartLlambda = ", lambda_)
 
-    lambda_ = 0.000118889
+    lambda_ = 10e-10
     max_iters = 100**2
     gamma = 0.0005
     
-    k_indices = build_k_indices(y_tr, 10)
+    k_indices = build_k_indices(y_training, 10)
     
     '''
     #m_least_square = Model("Least Square", degree)
@@ -241,27 +246,29 @@ def try_all_models_for_degree(degree_and_data):
         each_model.print()
 
     # get best model based on the loss
-    best_model = max(all_models, key=lambda each: each.accuracy)
+    best_model = max(all_models, key=lambda each: each.f1_score)
     return best_model
 
 
-np.random.seed(10)
-x_tr, y_tr, x_te, y_te, ids_te = read_train_test()
-x_tr, x_te = standardize_features(x_tr, x_te)
+def run_all():
+    np.random.seed(10)
+    x_tr, y_tr, x_te, y_te, ids_te = read_train_test()
+    x_tr, x_te = standardize_features(x_tr, x_te)
 
-best_overall_model = try_different_models(x_tr, y_tr)
-print("Best model is:")
-best_overall_model.print()
+    (all, best_overall_model) = try_different_models(x_tr, y_tr)
+    print("Best model is:")
+    best_overall_model.print()
+
+    print(best_overall_model.weights)
+
+    extended_test_feature_te = build_poly(x_te, best_overall_model.degree)
+    extended_test_feature_tr = build_poly(x_tr, best_overall_model.degree)
+    extended_test_feature_tr, extended_test_feature_te = standardize_features(extended_test_feature_tr, extended_test_feature_te)
+    predict_and_generate_file(best_overall_model.weights, extended_test_feature_te, ids_te)
+
+    return all
 
 
-print(best_overall_model.weights)
-
-extended_test_feature_te = build_poly(x_te, best_overall_model.degree)
-extended_test_feature_tr = build_poly(x_tr, best_overall_model.degree)
-extended_test_feature_tr, extended_test_feature_te = standardize_features(extended_test_feature_tr, extended_test_feature_te)
-predict_and_generate_file(best_overall_model.weights, extended_test_feature_te, ids_te)
-
-
-    
+#run_all()
     
     
