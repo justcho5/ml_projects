@@ -66,6 +66,10 @@ def f1_score(y_training, y_prediction):
 
 
 def standardize_features(x_training, x_test):
+    """
+    :returns the modified training and test dat
+    """
+
     # Skip first column
     mean_tr = np.mean(x_training[:, 1:], axis=0)
     std_tr = np.std(x_training[:, 1:], axis=0)
@@ -106,82 +110,72 @@ def subset(y, x):
     return [y_0, y_1, y_23], [x0, x1, x23]
 
 
+def subset_training(degree, lambda_, y_tr, x_tr, y_te, x_te):
+    # Partition the data based on Jet Number
+    y_tests, x_tests = subset(y_te, x_te)
+    y_trains, x_trains = subset(y_tr, x_tr)
+
+    subset_weights = []
+    subset_tx_te = []
+
+    # Train with each partition. Thus a different set of weights depending on the
+    # Jet number.
+    test_y_x = zip(y_tests, x_tests)
+    train_y_x = zip(y_trains, x_trains)
+
+    for ind, ((y_training, x_training), (y_test, x_test)) in enumerate(zip(train_y_x, test_y_x)):
+        tx_tr, tx_te = standardize_features(x_training, x_test)
+        tx_tr = build_poly(tx_tr, degree)
+        tx_te = build_poly(tx_te, degree)
+        tx_tr, tx_te = standardize_features(tx_tr, tx_te)
+
+        # Train the model
+        weights, _ = ridge_regression(y_training, tx_tr, lambda_)
+        subset_weights.append(weights)
+        subset_tx_te.append(tx_te)
+
+    return subset_tx_te, subset_weights
+
+
 def cross_validation(y, x, k_indices, lambda_, degree):
-    """
-    TODO KIRU
-    :param y:
-    :param x:
-    :param k_indices:
-    :param lambda_:
-    :param degree:
-    :return:
-    """
     f1_scores = []
 
-    for i, ind_te in enumerate(k_indices):
+    # for each k-fold
+    for i, index_test in enumerate(k_indices):
+
         # Split the training set into train and test sets for cross-validation.
-        y_te = y[ind_te]
-        x_te = x[ind_te]
+        y_test = y[index_test]
+        x_test = x[index_test]
 
-        ind_tr = np.vstack((k_indices[:i], k_indices[i + 1:])).flatten()
-        y_tr = y[ind_tr]
-        x_tr = x[ind_tr]
+        index_training = np.vstack((k_indices[:i], k_indices[i + 1:])).flatten()
+        y_training = y[index_training]
+        x_training = x[index_training]
 
-        # Partition the data based on Jet Number
-        y_tests, x_tests = subset(y_te, x_te)
-        y_trains, x_trains = subset(y_tr, x_tr)
-
-        error_tr = np.zeros(y_tr.shape)
-        error_te = np.zeros(y_te.shape)
-        subset_weights = []
-        subset_tx_te = []
-
-        # Train with each partition. Thus a different set of weights depending on the
-        # Jet number.
-        for ind, (trains, tests) in enumerate(
-                zip(zip(y_trains, x_trains), zip(y_tests, x_tests))
-        ):
-            if (ind == 0) | (ind == 1):
-                mask_tr = x_tr[:, 22] == ind
-                mask_te = x_te[:, 22] == ind
-            else:
-                mask_tr = (x_tr[:, 22] == ind) | (x_tr[:, 22] == ind + 1)
-                mask_te = (x_te[:, 22] == ind) | (x_te[:, 22] == ind + 1)
-
-            tx_tr, tx_te = standardize_features(trains[1], tests[1])
-            tx_tr = build_poly(tx_tr, degree)
-            tx_te = build_poly(tx_te, degree)
-            tx_tr, tx_te = standardize_features(tx_tr, tx_te)
-
-            # Train the model
-            weights, _ = ridge_regression(trains[0], tx_tr, lambda_)
-            subset_weights.append(weights)
-            subset_tx_te.append(tx_te)
-
-            error_tr[mask_tr] = trains[0] - np.dot(tx_tr, weights)
-            error_te[mask_te] = tests[0] - np.dot(tx_te, weights)
-
-        # calculated how many data-points are correctly predicted
-        # This is different from the loss of the test set, since at the end we're
-        # only interested on the prediction
+        subset_tx_te, subset_weights = subset_training(degree, lambda_,
+                                                       y_training, x_training,
+                                                       y_test, x_test)
 
         # Build the predictions matrix based on jet number
-        predictions_y = np.zeros(y_te.shape)
+        predictions_y = np.zeros(y_test.shape)
         for ind, test in enumerate(zip(subset_weights, subset_tx_te)):
 
             if (ind == 0) | (ind == 1):
-                mask = x_te[:, 22] == ind
+                mask = x_test[:, 22] == ind
             else:
-                mask = (x_te[:, 22] == ind) | (x_te[:, 22] == ind + 1)
+                mask = (x_test[:, 22] == ind) | (x_test[:, 22] == ind + 1)
+
             labels = predict_labels(test[0], test[1])
             predictions_y[mask] = labels
-        f1 = f1_score(y_te, predictions_y)
+
+        # calculated the F1 score for the current k-fold
+        f1 = f1_score(y_test, predictions_y)
         f1_scores.append(f1)
 
     return f1_scores
 
 
-def model(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
+def predict(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
+
     y_tests, x_tests = subset(y_te, x_te)
     y_trains, x_trains = subset(y_tr, x_tr)
 
@@ -210,24 +204,8 @@ def model(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
             mask = (x_te[:, 22] == ind) | (x_te[:, 22] == ind + 1)
         labels = predict_labels(test[0], test[1])
         predictions_y[mask] = labels
+
     create_csv_submission(ids_te, predictions_y, "../data/output_mult_models.csv")
-
-
-def feat_perc_nan(x_tr):
-    nan_ind = np.where(np.isnan(x_tr).sum(axis=0) > 0)
-    feat = np.isnan(x_tr).sum(axis=0) / x_tr.shape[0]
-    print("Features where NaNs exist: ", nan_ind)
-    print(feat[nan_ind])
-
-
-def predict_labels(weights, data):
-    """Generates class predictions given weights, and a test data matrix"""
-    y_pred = np.dot(data, weights)
-    y_pred[np.where(y_pred <= 0)] = -1
-    y_pred[np.where(y_pred > 0)] = 1
-
-    return y_pred
-
 
 def predict_and_generate_file(weights, x_te, ids_te):
     print("Predict for test data")
@@ -288,7 +266,7 @@ def train_for_configuration(input):
 def do_training():
     np.random.seed(1)
 
-    (y_tr, x_tr, ids_tr), (ignore_training_data) = read_file()
+    (y_tr, x_tr, ids_tr), _ = read_file()
 
     # This is the set of configuration we want to try
     arguments = []
@@ -307,7 +285,7 @@ def do_training():
 def predict_with_best_model():
     (y_tr, x_tr, ids_tr), (y_te, x_te, ids_te) = read_file()
 
-    model(y_tr, x_tr, y_te, x_te, ids_te, degree=14, lambda_=10e-15)
+    predict(y_tr, x_tr, y_te, x_te, ids_te, degree=14, lambda_=10e-15)
 
 
 def main():
@@ -317,3 +295,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def feat_perc_nan(x_tr):
+    nan_ind = np.where(np.isnan(x_tr).sum(axis=0) > 0)
+    feat = np.isnan(x_tr).sum(axis=0) / x_tr.shape[0]
+    print("Features where NaNs exist: ", nan_ind)
+    print(feat[nan_ind])
