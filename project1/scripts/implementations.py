@@ -1,16 +1,20 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 
-# Return type: Note that all functions should return: (w, loss), which is the last weight vector of the
-# method, and the corresponding loss value (cost function). Note that while in previous labs you might have
-# kept track of all encountered w for iterative methods, here we only want the last one.
+"""
+Return type: Note that all functions should return: (w, loss), which is the last weight vector of the
+method, and the corresponding loss value (cost function). Note that while in previous labs you might have
+kept track of all encountered w for iterative methods, here we only want the last one.
 
-# -*- coding: utf-8 -*-
-"""some helper functions for project 1."""
 
+"""
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
+    This method is taken over from the exercise.
+
     Generate a minibatch iterator for a dataset.
     Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
     Outputs an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
@@ -108,6 +112,7 @@ def ridge_regression(y, tx, lambda_):
 
     loss = compute_rmse(y, tx, w)
     return (w, loss)
+
 
 ## Logistic regression
 
