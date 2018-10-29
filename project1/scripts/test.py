@@ -55,8 +55,8 @@ def subset(y, x):
 def cross_validation(y, x, k_indices, lambda_, degree):
     """return the loss of ridge regression."""
 
-    losses_tr = []
-    losses_te = []
+    losses_training = []
+    losses_test = []
     f1_scores = []
 
     for i, ind_te in enumerate(k_indices):
@@ -101,8 +101,8 @@ def cross_validation(y, x, k_indices, lambda_, degree):
 
             error_tr[mask_tr] = trains[0] - np.dot(tx_tr, weights)
             error_te[mask_te] = tests[0] - np.dot(tx_te, weights)
-        losses_tr.append(np.mean(np.dot(error_tr.T, error_tr)))
-        losses_te.append(np.mean(np.dot(error_te.T, error_te)))
+        losses_training.append(np.mean(np.dot(error_tr.T, error_tr)))
+        losses_test.append(np.mean(np.dot(error_te.T, error_te)))
         # calculated how many data-points are correctly predicted
         # This is different from the loss of the test set, since at the end we're
         # only interested on the prediction
@@ -120,12 +120,7 @@ def cross_validation(y, x, k_indices, lambda_, degree):
         f1 = f1_score(y_te, predictions_y)
         f1_scores.append(f1)
 
-    avg_loss_tr = np.average(losses_tr)
-    avg_loss_te = np.average(losses_te)
-    avg_f1_score = np.average(f1_scores)
-
-    # return losses_tr, losses_te, f1_scores
-    return avg_loss_tr, avg_loss_te, avg_f1_score
+    return losses_training, losses_test, f1_scores
 
 def model(y_tr, x_tr, y_te, x_te, ids_te, degree = 9, lambda_ = 0.0001):
     y_tests, x_tests = subset(y_te, x_te)
@@ -230,12 +225,17 @@ def call_all():
         for lambda_ in lambdas:
             print("deg {}".format(deg))
             degree = deg
-            avg_loss_tr, avg_loss_te, avg_f1 = cross_validation( y_tr, x_tr, k_indices, lambda_, degree )
+            losses_training, losses_test, f1_scores = cross_validation( y_tr, x_tr, k_indices, lambda_, degree )
+
+            avg_loss_tr = np.average(losses_training)
+            avg_loss_te = np.average(losses_test)
+            avg_f1 = np.average(f1_scores)
 
             print("Degree {degree}, lambda {lambda_}, Average loss training: ".format(degree = degree, lambda_ = lambda_), avg_loss_tr)
             print("Degree {degree}, lambda {lambda_}, Average loss test: ".format(degree = degree, lambda_ = lambda_),avg_loss_te)
             print("Degree {degree}, lambda {lambda_}, Average f1_score: ".format(degree = degree, lambda_ = lambda_),avg_f1)
-            result.append((avg_loss_tr, avg_loss_te, avg_f1 ))
+
+            result.append((losses_training, losses_test, f1_scores ))
     return result
 
 # model(y_tr, x_tr, y_te, x_te, ids_te, degree = 19, lambda_= 10**-15)
