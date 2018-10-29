@@ -8,6 +8,7 @@ method, and the corresponding loss value (cost function). Note that while in pre
 kept track of all encountered w for iterative methods, here we only want the last one.
 """
 
+
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
     This method is taken over from the exercise.
@@ -141,10 +142,12 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     loss = logistic_regression_loss(y, h)
     return (w, loss)
 
+
 def reg_log_regression_gradient(x, y, h, w, lambda_):
     grad = logistic_regression_gradient(x, y, h)
     grad[1:] = grad[1:] + (lambda_ / y.shape[0]) * w[1:]
     return grad
+
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
