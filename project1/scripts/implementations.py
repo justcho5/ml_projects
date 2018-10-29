@@ -6,10 +6,7 @@ import numpy as np
 Return type: Note that all functions should return: (w, loss), which is the last weight vector of the
 method, and the corresponding loss value (cost function). Note that while in previous labs you might have
 kept track of all encountered w for iterative methods, here we only want the last one.
-
-
 """
-
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
