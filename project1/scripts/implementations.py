@@ -1,5 +1,4 @@
 import numpy as np
-import csv
 
 # Return type: Note that all functions should return: (w, loss), which is the last weight vector of the
 # method, and the corresponding loss value (cost function). Note that while in previous labs you might have
@@ -7,6 +6,7 @@ import csv
 
 # -*- coding: utf-8 -*-
 """some helper functions for project 1."""
+
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
@@ -44,7 +44,7 @@ def build_poly(x, degree):
 
 
 def compute_mse(y, tx, w):
-    e = y - ( tx @ w )
+    e = y - (tx @ w)
     mse = (1 / 2) * np.mean(e.T @ e)
     return mse
 
@@ -80,7 +80,6 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
 
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
-
             gradient = compute_gradient(minibatch_y, minibatch_tx, w)
             loss = compute_rmse(minibatch_y, minibatch_tx, w)
 
@@ -95,7 +94,7 @@ def least_squares(y, tx):
     a = tx.T @ tx
     b = tx.T @ y
     w = np.linalg.solve(a, b)
-    # Here I used RMSE
+
     loss = compute_rmse(y, tx, w)
     return (w, loss)
 
@@ -110,6 +109,7 @@ def ridge_regression(y, tx, lambda_):
     loss = compute_rmse(y, tx, w)
     return (w, loss)
 
+## Logistic regression
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
