@@ -205,7 +205,7 @@ def predict(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
         labels = predict_labels(test[0], test[1])
         predictions_y[mask] = labels
 
-    create_csv_submission(ids_te, predictions_y, "../data/output_mult_models.csv")
+    create_csv_submission(ids_te, predictions_y, "../data/output.csv")
 
 def predict_and_generate_file(weights, x_te, ids_te):
     print("Predict for test data")
@@ -292,20 +292,14 @@ def do_training():
 def predict_with_best_model():
     (y_tr, x_tr, ids_tr), (y_te, x_te, ids_te) = read_file()
 
-    predict(y_tr, x_tr, y_te, x_te, ids_te, degree=14, lambda_=10e-15)
+    predict(y_tr, x_tr, y_te, x_te, ids_te, degree=14, lambda_=1e-15)
 
 
 def main():
-    # predict_with_best_model()
-    do_training()
+    predict_with_best_model()
+    #do_training()
 
 
 if __name__ == "__main__":
     main()
 
-
-def feat_perc_nan(x_tr):
-    nan_ind = np.where(np.isnan(x_tr).sum(axis=0) > 0)
-    feat = np.isnan(x_tr).sum(axis=0) / x_tr.shape[0]
-    print("Features where NaNs exist: ", nan_ind)
-    print(feat[nan_ind])
