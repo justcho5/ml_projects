@@ -217,13 +217,14 @@ def call_all_lambda(lambdas):
 def call_all():
     np.random.seed(1)
     k_indices = build_k_indices(y_tr, 10)
-    # lambdas = np.logspace(-19,-15,5)
+    lambdas = np.logspace(-20, -1, 20)
 
-    lambdas = [10**-15]
+    #lambdas = [10**-15]
     result = []
-    for deg in range(1, 21):
+    for deg in [13]:
         for lambda_ in lambdas:
-            print("deg {}".format(deg))
+            print("deg {} lambda {}".format(deg, lambda_))
+
             degree = deg
             losses_training, losses_test, f1_scores = cross_validation( y_tr, x_tr, k_indices, lambda_, degree )
 
@@ -235,7 +236,7 @@ def call_all():
             print("Degree {degree}, lambda {lambda_}, Average loss test: ".format(degree = degree, lambda_ = lambda_),avg_loss_te)
             print("Degree {degree}, lambda {lambda_}, Average f1_score: ".format(degree = degree, lambda_ = lambda_),avg_f1)
 
-            result.append((losses_training, losses_test, f1_scores ))
+            result.append((losses_training, losses_test, f1_scores, lambda_))
     return result
 
-# model(y_tr, x_tr, y_te, x_te, ids_te, degree = 19, lambda_= 10**-15)
+#model(y_tr, x_tr, y_te, x_te, ids_te, degree = 19, lambda_= 10**-15)
