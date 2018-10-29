@@ -127,12 +127,6 @@ def logistic_regression_gradient(x, y, h):
     return r / y.shape[0]
 
 
-def reg_log_regression_gradient(x, y, h, w, lambda_):
-    grad = logistic_regression_gradient(x, y, h)
-    grad[1:] = grad[1:] + (lambda_ / y.shape[0]) * w[1:]
-    return grad
-
-
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
     z = tx @ initial_w
@@ -144,9 +138,13 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         gradient = logistic_regression_gradient(tx, y, h)
         w = w - gamma * (gradient)
 
-    loss = compute_rmse(y, tx, w)
+    loss = logistic_regression_loss(y, h)
     return (w, loss)
 
+def reg_log_regression_gradient(x, y, h, w, lambda_):
+    grad = logistic_regression_gradient(x, y, h)
+    grad[1:] = grad[1:] + (lambda_ / y.shape[0]) * w[1:]
+    return grad
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # Logistic regression using gradient descent or SGD
@@ -159,5 +157,5 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         gradient = reg_log_regression_gradient(tx, y, h, w, lambda_)
         w = w - gamma * (gradient)
 
-    loss = compute_rmse(y, tx, w)
+    loss = logistic_regression_loss(y, h)
     return (w, loss)
