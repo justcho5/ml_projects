@@ -9,18 +9,71 @@ from implementations import (
     compute_rmse,
 )
 
-from helpers import load_csv_data, predict_labels, create_csv_submission
-from cross_val import build_k_indices, f1_score
+from helpers import (
+    load_csv_data,
+    predict_labels,
+    create_csv_submission
+)
+
+from multiprocessing import Pool
 import numpy as np
 
-def standardize_features(x_tr, x_te):
-    # Skip first column
-    mean_tr = np.mean(x_tr[:, 1:], axis=0)
-    std_tr = np.std(x_tr[:, 1:], axis=0)
-    x_tr[:, 1:] = (x_tr[:, 1:] - mean_tr) / std_tr
-    x_te[:, 1:] = (x_te[:, 1:] - mean_tr) / std_tr
 
-    return x_tr, x_te
+def build_k_indices(y, k_fold):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval] for k in range(k_fold)]
+    return np.array(k_indices)
+
+
+def precision(y_training, y_prediction):
+    """
+    :returns recall (tp / (tp + fn))
+    """
+    true_positive = np.where((y_prediction == y_training) & (y_training == 1))
+    false_positive = np.where((y_prediction != y_training) & (y_prediction == 1))
+
+    len_tp = len(true_positive[0])
+    len_fp = len(false_positive[0])
+
+    return 1 - (len_tp / (len_tp + len_fp))
+
+
+def recall(y_training, y_prediction):
+    """
+    :returns recall (tp / (tp + fn))
+    """
+
+    true_positive = np.where((y_prediction == y_training) & (y_training == 1))
+    false_negative = np.where((y_prediction != y_training) & (y_training == 1))
+
+    tp = len(true_positive[0])
+    fn = len(false_negative[0])
+    return 1 - (tp / (tp + fn))
+
+
+def f1_score(y_training, y_prediction):
+    """
+    :returns the calculated f1 score for given y values
+    """
+    precision_value = precision(y_training, y_prediction)
+    recall_value = recall(y_training, y_prediction)
+
+    return 1 - (2 * precision_value * recall_value / (precision_value + recall_value))
+
+
+def standardize_features(x_training, x_test):
+    # Skip first column
+    mean_tr = np.mean(x_training[:, 1:], axis=0)
+    std_tr = np.std(x_training[:, 1:], axis=0)
+    x_training[:, 1:] = (x_training[:, 1:] - mean_tr) / std_tr
+    x_test[:, 1:] = (x_test[:, 1:] - mean_tr) / std_tr
+
+    return x_training, x_test
+
 
 def subset(y, x):
     """
@@ -48,15 +101,21 @@ def subset(y, x):
 
     x0 = np.delete(x_0, invalid0, axis=1)
     x1 = np.delete(x_1, invalid1, axis=1)
-    x23 = np.delete(x_23, invalid23, axis =1)
+    x23 = np.delete(x_23, invalid23, axis=1)
 
     return [y_0, y_1, y_23], [x0, x1, x23]
 
-def cross_validation(y, x, k_indices, lambda_, degree):
-    """return the loss of ridge regression."""
 
-    losses_training = []
-    losses_test = []
+def cross_validation(y, x, k_indices, lambda_, degree):
+    """
+    TODO KIRU
+    :param y:
+    :param x:
+    :param k_indices:
+    :param lambda_:
+    :param degree:
+    :return:
+    """
     f1_scores = []
 
     for i, ind_te in enumerate(k_indices):
@@ -64,7 +123,7 @@ def cross_validation(y, x, k_indices, lambda_, degree):
         y_te = y[ind_te]
         x_te = x[ind_te]
 
-        ind_tr = np.vstack((k_indices[:i], k_indices[i + 1 :])).flatten()
+        ind_tr = np.vstack((k_indices[:i], k_indices[i + 1:])).flatten()
         y_tr = y[ind_tr]
         x_tr = x[ind_tr]
 
@@ -80,14 +139,14 @@ def cross_validation(y, x, k_indices, lambda_, degree):
         # Train with each partition. Thus a different set of weights depending on the
         # Jet number.
         for ind, (trains, tests) in enumerate(
-            zip(zip(y_trains, x_trains), zip(y_tests, x_tests))
+                zip(zip(y_trains, x_trains), zip(y_tests, x_tests))
         ):
             if (ind == 0) | (ind == 1):
                 mask_tr = x_tr[:, 22] == ind
                 mask_te = x_te[:, 22] == ind
             else:
-                mask_tr = (x_tr[:, 22] == ind) |(x_tr[:, 22] == ind+1)
-                mask_te = (x_te[:, 22] == ind) |(x_te[:, 22] == ind+1)
+                mask_tr = (x_tr[:, 22] == ind) | (x_tr[:, 22] == ind + 1)
+                mask_te = (x_te[:, 22] == ind) | (x_te[:, 22] == ind + 1)
 
             tx_tr, tx_te = standardize_features(trains[1], tests[1])
             tx_tr = build_poly(tx_tr, degree)
@@ -101,8 +160,7 @@ def cross_validation(y, x, k_indices, lambda_, degree):
 
             error_tr[mask_tr] = trains[0] - np.dot(tx_tr, weights)
             error_te[mask_te] = tests[0] - np.dot(tx_te, weights)
-        losses_training.append(np.mean(np.dot(error_tr.T, error_tr)))
-        losses_test.append(np.mean(np.dot(error_te.T, error_te)))
+
         # calculated how many data-points are correctly predicted
         # This is different from the loss of the test set, since at the end we're
         # only interested on the prediction
@@ -114,15 +172,16 @@ def cross_validation(y, x, k_indices, lambda_, degree):
             if (ind == 0) | (ind == 1):
                 mask = x_te[:, 22] == ind
             else:
-                mask = (x_te[:, 22] == ind) |(x_te[:, 22] == ind+1)
+                mask = (x_te[:, 22] == ind) | (x_te[:, 22] == ind + 1)
             labels = predict_labels(test[0], test[1])
             predictions_y[mask] = labels
         f1 = f1_score(y_te, predictions_y)
         f1_scores.append(f1)
 
-    return losses_training, losses_test, f1_scores
+    return f1_scores
 
-def model(y_tr, x_tr, y_te, x_te, ids_te, degree = 9, lambda_ = 0.0001):
+
+def model(y_tr, x_tr, y_te, x_te, ids_te, degree=9, lambda_=0.0001):
     y_tests, x_tests = subset(y_te, x_te)
     y_trains, x_trains = subset(y_tr, x_tr)
 
@@ -131,7 +190,6 @@ def model(y_tr, x_tr, y_te, x_te, ids_te, degree = 9, lambda_ = 0.0001):
     for ind, (trains, tests) in enumerate(
             zip(zip(y_trains, x_trains), zip(y_tests, x_tests))
     ):
-
         tx_tr, tx_te = standardize_features(trains[1], tests[1])
         tx_tr = build_poly(tx_tr, degree)
         tx_te = build_poly(tx_te, degree)
@@ -153,6 +211,7 @@ def model(y_tr, x_tr, y_te, x_te, ids_te, degree = 9, lambda_ = 0.0001):
         labels = predict_labels(test[0], test[1])
         predictions_y[mask] = labels
     create_csv_submission(ids_te, predictions_y, "../data/output_mult_models.csv")
+
 
 def feat_perc_nan(x_tr):
     nan_ind = np.where(np.isnan(x_tr).sum(axis=0) > 0)
@@ -179,64 +238,82 @@ def predict_and_generate_file(weights, x_te, ids_te):
     create_csv_submission(ids_te, y_prediction, "../data/output.csv")
 
 
-# split dataset based on jetnum number
+def read_file():
+    train_datapath = "../data/train.csv"
+    test_datapath = "../data/test.csv"
 
-train_datapath = "../data/train.csv"
-test_datapath = "../data/test.csv"
+    print("Load CSV file")
+    training_data = load_csv_data(train_datapath, sub_sample=False)
+    test_data = load_csv_data(test_datapath)
 
-print("Load CSV file")
-y_tr, x_tr, ids_tr = load_csv_data(train_datapath, sub_sample=False)
-y_te, x_te, ids_te = load_csv_data(test_datapath)
+    return training_data, test_data
 
 
-def call_all(degrees):
+class Model:
+    """
+    Represents a result from running with different configuration
+    """
+
+    def __init__(self, degree, lambda_, f1_scores):
+        self.f1_scores = f1_scores
+        self.lambda_ = lambda_
+        self.degree = degree
+
+    def average_score(self):
+        return np.average(self.degree)
+
+    def print(self):
+        rounded_lambda = np.round(self.lambda_, 4),
+        avg_score = np.round(np.average(self.f1_scores), 4)
+        print("Degree {degree}, lambda {lambda_}, Average F1-Score: {avg_score}"
+              .format(degree=self.degree,
+                      lambda_=rounded_lambda,
+                      avg_score=avg_score))
+
+
+def train_for_configuration(input):
+    degree, lambda_, y_training, x_training = input
+
+    print("Start degree {} lambda {}".format(degree, lambda_))
+
+    k_indices = build_k_indices(y_training, 10)
+    f1_scores = cross_validation(y_training, x_training, k_indices, lambda_, degree)
+
+    model = Model(degree, lambda_, f1_scores)
+    model.print()
+
+    return model
+
+
+def do_training():
     np.random.seed(1)
-    k_indices = build_k_indices(y_tr, 10)
-    lambda_ = 10**-10
-    results = []
-    for degree in degrees:
-        print("Degree: {}".format(degree))
-        result = cross_validation(y_tr, x_tr, k_indices, lambda_, degree)
-        results.append(result)
 
-    return results
+    (y_tr, x_tr, ids_tr), (ignore_training_data) = read_file()
 
-def call_all_lambda(lambdas):
-    np.random.seed(1)
-    k_indices = build_k_indices(y_tr, 10)
-    degree = 18
-    results = []
-    print("Degree: {}".format(degree))
-    for lambda_ in lambdas:
-        print("Lambda: {}".format(lambda_))
-        result = cross_validation(y_tr, x_tr, k_indices, lambda_, degree)
-        results.append(result)
+    # This is the set of configuration we want to try
+    arguments = []
+    for deg in range(1, 20):
+        for lambda_ in np.logspace(-20, -1, 20):
+            arguments.append((deg, lambda_, y_tr, x_tr))
 
-    return results
+    # Run all configuration in a pool
+    with Pool(8) as pool:
+        all_models = pool.map(train_for_configuration, arguments)
+        best_model = max(all_models, key=lambda each: each.average_score())
 
-def call_all():
-    np.random.seed(1)
-    k_indices = build_k_indices(y_tr, 10)
-    lambdas = np.logspace(-20, -1, 20)
+        return (all_models, best_model)
 
-    #lambdas = [10**-15]
-    result = []
-    for deg in [13]:
-        for lambda_ in lambdas:
-            print("deg {} lambda {}".format(deg, lambda_))
 
-            degree = deg
-            losses_training, losses_test, f1_scores = cross_validation( y_tr, x_tr, k_indices, lambda_, degree )
+def predict_with_best_model():
+    (y_tr, x_tr, ids_tr), (y_te, x_te, ids_te) = read_file()
 
-            avg_loss_tr = np.average(losses_training)
-            avg_loss_te = np.average(losses_test)
-            avg_f1 = np.average(f1_scores)
+    model(y_tr, x_tr, y_te, x_te, ids_te, degree=14, lambda_=10e-15)
 
-            print("Degree {degree}, lambda {lambda_}, Average loss training: ".format(degree = degree, lambda_ = lambda_), avg_loss_tr)
-            print("Degree {degree}, lambda {lambda_}, Average loss test: ".format(degree = degree, lambda_ = lambda_),avg_loss_te)
-            print("Degree {degree}, lambda {lambda_}, Average f1_score: ".format(degree = degree, lambda_ = lambda_),avg_f1)
 
-            result.append((losses_training, losses_test, f1_scores, lambda_))
-    return result
+def main():
+    # predict_with_best_model()
+    do_training()
 
-#model(y_tr, x_tr, y_te, x_te, ids_te, degree = 19, lambda_= 10**-15)
+
+if __name__ == "__main__":
+    main()
