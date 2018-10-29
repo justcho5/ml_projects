@@ -263,23 +263,30 @@ def train_for_configuration(input):
     return model
 
 
-def do_training():
+def do_training_for_configuration(degrees, lambdas):
     np.random.seed(1)
 
     (y_tr, x_tr, ids_tr), _ = read_file()
 
     # This is the set of configuration we want to try
     arguments = []
-    for deg in range(1, 20):
-        for lambda_ in np.logspace(-20, -1, 20):
+    for deg in degrees:
+        for lambda_ in lambdas:
             arguments.append((deg, lambda_, y_tr, x_tr))
 
     # Run all configuration in a pool
     with Pool(8) as pool:
         all_models = pool.map(train_for_configuration, arguments)
+
         best_model = max(all_models, key=lambda each: each.average_score())
 
         return (all_models, best_model)
+
+
+def do_training():
+    default_range = range(1, 20)
+    default_lambdas = np.logspace(-20, -10, 20)
+    return do_training_for_configuration(default_range, default_lambdas)
 
 
 def predict_with_best_model():

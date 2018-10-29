@@ -31,7 +31,7 @@ The python code has been test with the following versions:
 
 ```
 Python: 3.6.2
-Numpy:
+Numpy: 1.13.1
 ```
 
 
