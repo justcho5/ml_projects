@@ -44,8 +44,8 @@ def build_poly(x, degree):
 
 
 def compute_mse(y, tx, w):
-    e = y - np.dot(tx, w)
-    mse = (1 / 2) * np.mean(np.dot(e.T, e))
+    e = y - ( tx @ w )
+    mse = (1 / 2) * np.mean(e.T @ e)
     return mse
 
 
@@ -92,8 +92,8 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
 
 def least_squares(y, tx):
     # Least squares regression using normal equations
-    a = np.dot(tx.T, tx)
-    b = np.dot(tx.T, y)
+    a = tx.T @ tx
+    b = tx.T @ y
     w = np.linalg.solve(a, b)
     # Here I used RMSE
     loss = compute_rmse(y, tx, w)
@@ -103,11 +103,10 @@ def least_squares(y, tx):
 def ridge_regression(y, tx, lambda_):
     # Ridge regression using normal equations
     aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
-    a = np.dot(tx.T, tx)
-    b = np.dot(tx.T, y)
+    a = tx.T @ tx
+    b = tx.T @ y
     w = np.linalg.solve(a + aI, b)
 
-    # RMSE?
     loss = compute_rmse(y, tx, w)
     return (w, loss)
 
@@ -141,8 +140,8 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     for n_iter in range(max_iters):
         gradient = logistic_regression_gradient(tx, y, h)
-        # loss = logistic_regression_loss(y, h)
         w = w - gamma * (gradient)
+
     loss = compute_rmse(y, tx, w)
     return (w, loss)
 
@@ -156,10 +155,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
     for n_iter in range(max_iters):
         gradient = reg_log_regression_gradient(tx, y, h, w, lambda_)
-
         w = w - gamma * (gradient)
 
-        # regularization = lambda_ / 2 * np.sum(w ** 2)
-        # loss = logistic_regression_loss(y, h) + regularization
     loss = compute_rmse(y, tx, w)
     return (w, loss)
