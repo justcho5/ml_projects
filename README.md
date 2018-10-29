@@ -29,7 +29,7 @@ Provided helper file.
 
 ### Requirements
 
-The python code has been test with the following versions:
+The python code has been tested with the following versions:
 
 ```
 Python: 3.6.2
