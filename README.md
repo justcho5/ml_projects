@@ -40,6 +40,8 @@ Numpy: 1.13.1
 
 In order to generate the prediction file simply run the run.py script:
 
+The test.csv and train.csv must be provided in project1/data/
+
     python run.py
 
 This will create the output file in *project1/data/output.csv*
