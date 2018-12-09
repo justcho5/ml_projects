@@ -21,12 +21,13 @@ from multiprocessing import Pool
 import dataset as d
 import models as m
 
-FILE_NAME = '../data/data_train_small.csv'
+#FILE_NAME = '../data/data_train_small.csv'
+FILE_NAME = '../data/data_train.csv'
 
 def main():
     print("Start script");
 
-    with Pool(10) as p:
+    with Pool(16) as p:
         data = d.read_data(FILE_NAME)
         data = np.array(data)
         result = m.cross_validate(p, data)

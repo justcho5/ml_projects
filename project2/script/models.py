@@ -185,6 +185,7 @@ class SurpriseSlopeOneModel:
 
 def call_algo(i):
     trainset, testset = i
+    print("Run a fold")
 
     models = [ 
         SurpriseSlopeOneModel(), 
@@ -199,23 +200,23 @@ def call_algo(i):
         SurpriseBaselineOnly(), 
     ]
 
-    for m in models:
+    for m in tqdm(models, desc="One split"):
         m.fit(trainset, testset)
 
     return models
 
-def cross_validate(pool, whole_data, is_parallel=False):
-    kf = KFold(n_splits = 10)
+def cross_validate(pool, whole_data, is_parallel=True):
+    kf = KFold(n_splits = 15)
 
     results = []
     splits = list(kf.split(whole_data))
 
+    print("running CV")
     ## run the code sequentially or parallely
     if is_parallel:
-        for train, test in tqdm(pool.imap(call_algo, splits), total=len(splits)):
-            trainset = whole_data[train]
-            testset = whole_data[test]
-            results.append((trainset, testset))
+        x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]]), splits))
+        for result in tqdm(pool.imap(call_algo, x), total=len(x)):
+            results.append(result)
     else:
         for train, test in tqdm(splits):
             trainset = whole_data[train]
