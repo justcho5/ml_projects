@@ -36,6 +36,9 @@ def main():
 
     return (result, data)
 
+def save_to_pickle(data):u
+    pickle.dump( data, open( "data.p", "wb" ) )
 
 if __name__ == "__main__":
-   main()
+   data = main()
+   save_to_pickle(data)
