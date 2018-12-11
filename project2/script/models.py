@@ -220,7 +220,7 @@ def call_algo(i):
     if "SurpriseBaselineOnly" in model_name:
         models.append(SurpriseBaselineOnly())
 
-    for m in tqdm(models, desc="One split"):
+    for m in models:
         print("run {}".format(m.name))
         m.fit(trainset, testset)
 
@@ -251,7 +251,7 @@ def cross_validate(pool, whole_data, is_parallel=True):
 
     return results
 
-def cross_validates_one_by_one(pool, whole_data, is_parallel=True, model_name):
+def cross_validates_one_by_one(pool, whole_data, model_name):
 
     kf = KFold(n_splits=10)
 
@@ -260,17 +260,16 @@ def cross_validates_one_by_one(pool, whole_data, is_parallel=True, model_name):
 
     print("running CV")
     ## run the code sequentially or parallely
-    if is_parallel:
-        x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]], model_name), splits))
+    x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]], model_name), splits))
 
-        for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
-            results.append(result)
+    for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
+        results.append(result)
 
     for m in range(len(results[0])):
         for r in results:
             print(r[m].name, r[m].rmse)
 
-    pickle.dump(results, open(model_name + ".result", "wb"))
+    pickle.dump(results, open("result/" + model_name + ".result", "wb"))
     return results
 
 

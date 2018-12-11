@@ -21,6 +21,7 @@ from multiprocessing import Pool
 # our module imports
 import dataset as d
 import models as m
+import time
 import sys
 
 #FILE_NAME = '../data/data_train_small.csv'
@@ -32,16 +33,29 @@ def main():
     with Pool(12) as p:
         data = d.read_data(FILE_NAME)
         data = np.array(data)
-        result = m.cross_validates_one_by_one(pool, data, is_parallel=True, sys.argv[1]):
-        #result = m.cross_validate(p, data)
+
+        models = ["SurpriseSlopeOneModel",
+                  "SurpriseSvdModel",
+                  "SurpriseSvdPPModel",
+                  "SurpriseNMF",
+                  "SurpriseKNNBasic",
+                  "SurpriseKNNWithMeans",
+                  "SurpriseKNNBaseline",
+                  "SurpriseCoClustering",
+                  "SurpriseBaselineOnly"]
+
+        for model in models:
+            print("Start: {}".format(model))
+            start_time = time.time()
+            result = m.cross_validates_one_by_one(pool, data, model):
+            diff =  (time.time() - start_time)
+            print("Time taken: {} {}s".format(model, diff))
 
     print("Script ended")
-
-    return (result, data)
 
 def save_to_pickle(data):
     pickle.dump( data, open( "data.p", "wb" ) )
 
 if __name__ == "__main__":
-   data = main()
-   save_to_pickle(data)
+   main()
+   #save_to_pickle(data)
