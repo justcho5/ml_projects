@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
+import pickle
+
 import surprise as s
 from surprise import accuracy
 from surprise import Dataset
@@ -171,7 +173,7 @@ class SurpriseSvdModel:
 class SurpriseSlopeOneModel:
     def __init__(self):
         self.name = 'Surprise SlopeOne'
-    
+
     def fit(self, trainset, testset):
         data_train = to_surprise_datset(trainset, testset)
 
@@ -186,20 +188,37 @@ class SurpriseSlopeOneModel:
         self.algo = algo
 
 def call_algo(i):
-    trainset, testset = i
+    trainset, testset, model_name = i
     print("Run a fold")
 
-    models = [ 
-        SurpriseSlopeOneModel(), 
-        SurpriseSvdModel(),
-        SurpriseSvdPPModel(),
-        SurpriseNMF(),
-        SurpriseKNNBasic(),
-        SurpriseKNNWithMeans(),
-        SurpriseKNNBaseline(),
-        SurpriseCoClustering(),
-        SurpriseBaselineOnly(),
-    ]
+    models = []
+
+    if "SurpriseSlopeOneModel" in model_name:
+        models.append(SurpriseSlopeOneModel())
+
+    if "SurpriseSvdModel" in model_name:
+        models.append(SurpriseSvdModel())
+
+    if "SurpriseSvdPPModel" in model_name:
+        models.append(SurpriseSvdPPModel())
+
+    if "SurpriseNMF" in model_name:
+        models.append(SurpriseNMF())
+
+    if "SurpriseKNNBasic" in model_name:
+        models.append(SurpriseKNNBasic())
+
+    if "SurpriseKNNWithMeans" in model_name:
+        models.append(SurpriseKNNWithMeans())
+
+    if "SurpriseKNNBaseline" in model_name:
+        models.append(SurpriseKNNBaseline())
+
+    if "SurpriseCoClustering" in model_name:
+        models.append(SurpriseCoClustering())
+
+    if "SurpriseBaselineOnly" in model_name:
+        models.append(SurpriseBaselineOnly())
 
     for m in tqdm(models, desc="One split"):
         print("run {}".format(m.name))
@@ -208,7 +227,7 @@ def call_algo(i):
     return models
 
 def cross_validate(pool, whole_data, is_parallel=True):
-    kf = KFold(n_splits = 15)
+    kf = KFold(n_splits = 8)
 
     results = []
     splits = list(kf.split(whole_data))
@@ -231,3 +250,28 @@ def cross_validate(pool, whole_data, is_parallel=True):
             print(r[m].name, r[m].rmse)
 
     return results
+
+def cross_validates_one_by_one(pool, whole-data, is_parallel=True, model_name):
+
+    kf = KFold(n_splits=10)
+
+    results = []
+    splits = list(kf.split(whole_data))
+
+    print("running CV")
+    ## run the code sequentially or parallely
+    if is_parallel:
+        x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]], model_name), splits))
+
+        for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
+            results.append(result)
+
+    for m in range(len(results[0])):
+        for r in results:
+            print(r[m].name, r[m].rmse)
+
+    pickle.dump(results, open(model_name + ".result", "wb"))
+    return results
+
+
+

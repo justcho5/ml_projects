@@ -28,7 +28,7 @@ FILE_NAME = '../data/data_train.csv'
 def main():
     print("Start script");
 
-    with Pool(16) as p:
+    with Pool(12) as p:
         data = d.read_data(FILE_NAME)
         data = np.array(data)
         result = m.cross_validate(p, data)
