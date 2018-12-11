@@ -16,8 +16,10 @@ from surprise import BaselineOnly
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 
-from tqdm import tqdm_notebook
-tqdm = tqdm_notebook
+from tqdm import tqdm
+
+#from tqdm import tqdm_notebook
+#tqdm = tqdm_notebook
 
 #class Dataset:
     #def __init(self, full_data):
@@ -189,18 +191,18 @@ def call_algo(i):
 
     models = [ 
         SurpriseSlopeOneModel(), 
-        SurpriseSvdModel(), 
-        SurpriseSlopeOneModel(),
-        SurpriseSvdPPModel(), 
-        SurpriseNMF(), 
-        SurpriseKNNBasic(), 
-        SurpriseKNNWithMeans(), 
-        SurpriseKNNBaseline(), 
-        SurpriseCoClustering(), 
-        SurpriseBaselineOnly(), 
+        SurpriseSvdModel(),
+        SurpriseSvdPPModel(),
+        SurpriseNMF(),
+        SurpriseKNNBasic(),
+        SurpriseKNNWithMeans(),
+        SurpriseKNNBaseline(),
+        SurpriseCoClustering(),
+        SurpriseBaselineOnly(),
     ]
 
     for m in tqdm(models, desc="One split"):
+        print("run {}".format(m.name))
         m.fit(trainset, testset)
 
     return models
@@ -215,7 +217,7 @@ def cross_validate(pool, whole_data, is_parallel=True):
     ## run the code sequentially or parallely
     if is_parallel:
         x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]]), splits))
-        for result in tqdm(pool.imap(call_algo, x), total=len(x)):
+        for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
             results.append(result)
     else:
         for train, test in tqdm(splits):
