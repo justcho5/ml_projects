@@ -21,6 +21,7 @@ from multiprocessing import Pool
 # our module imports
 import dataset as d
 import models as m
+import sys
 
 #FILE_NAME = '../data/data_train_small.csv'
 FILE_NAME = '../data/data_train.csv'
@@ -31,7 +32,8 @@ def main():
     with Pool(12) as p:
         data = d.read_data(FILE_NAME)
         data = np.array(data)
-        result = m.cross_validate(p, data)
+        result = m.cross_validates_one_by_one(pool, data, is_parallel=True, sys.argv[1]):
+        #result = m.cross_validate(p, data)
 
     print("Script ended")
 
