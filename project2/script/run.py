@@ -2,6 +2,7 @@
 import surprise
 import numpy as np
 import pandas as pd
+import pickle
 
 from surprise import BaselineOnly
 from surprise import Dataset

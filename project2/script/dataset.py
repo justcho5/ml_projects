@@ -65,7 +65,7 @@ def convert_to_data(file_path = 'data/data_train.csv',
 
     if sub_sample:
         shuffle(data)
-        data = data[:100_000]
+        data = data[:100000]
 
     with open('data/kiru.csv', 'w') as f:
         for item in data:
