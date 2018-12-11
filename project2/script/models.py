@@ -18,6 +18,8 @@ from surprise import BaselineOnly
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 
+import os
+
 from tqdm import tqdm
 
 #from tqdm import tqdm_notebook
@@ -189,7 +191,6 @@ class SurpriseSlopeOneModel:
 
 def call_algo(i):
     trainset, testset, model_name = i
-    print("Run a fold")
 
     models = []
 
@@ -221,7 +222,6 @@ def call_algo(i):
         models.append(SurpriseBaselineOnly())
 
     for m in models:
-        print("run {}".format(m.name))
         m.fit(trainset, testset)
 
     return models
@@ -268,6 +268,9 @@ def cross_validates_one_by_one(pool, whole_data, model_name):
     for m in range(len(results[0])):
         for r in results:
             print(r[m].name, r[m].rmse)
+
+    if not os.path.exists("result"):
+        os.makedirs("result")
 
     pickle.dump(results, open("result/" + model_name + ".result", "wb"))
     return results

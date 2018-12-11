@@ -47,7 +47,7 @@ def main():
         for model in models:
             print("Start: {}".format(model))
             start_time = time.time()
-            result = m.cross_validates_one_by_one(pool, data, model):
+            result = m.cross_validates_one_by_one(p, data, model)
             diff =  (time.time() - start_time)
             print("Time taken: {} {}s".format(model, diff))
 
