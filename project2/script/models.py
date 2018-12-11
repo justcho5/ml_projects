@@ -253,7 +253,7 @@ def cross_validate(pool, whole_data, is_parallel=True):
 
 def cross_validates_one_by_one(pool, whole_data, model_name):
 
-    kf = KFold(n_splits=10)
+    kf = KFold(n_splits=12)
 
     results = []
     splits = list(kf.split(whole_data))
