@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from surprise import Reader
+from surprise import Dataset
 
 def data_frame_to_matrix(file_path = 'data_train.csv'):
     data = pd.read_csv(file_path)
@@ -77,4 +79,8 @@ def convert_to_data(file_path = 'data/data_train.csv',
     data = Dataset.load_from_file(file_path, reader=reader)
     return data
 
+def to_surprise_read(file_path='data/data_surprise.csv'):
+    reader = Reader(line_format='user item rating', sep=',')
+    data = Dataset.load_from_file(file_path, reader=reader)
+    return data
 

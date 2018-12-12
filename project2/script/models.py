@@ -229,9 +229,7 @@ def cross_validate(pool, whole_data, is_parallel=True):
     return results
 
 def cross_validates_one_by_one(pool, whole_data, model_name):
-    file_path = '../data/data_surprise.csv'
-    reader = Reader(line_format='user item rating', sep=',')
-    data = Dataset.load_from_file(file_path, reader=reader)
+    data = d.to_surprise_read('../data/data_surprise.csv')
     kf = KFold(n_splits = 12)
 
     results = []
@@ -252,6 +250,23 @@ def cross_validates_one_by_one(pool, whole_data, model_name):
 
     pickle.dump(results, open("result/" + model_name + ".result", "wb"))
     return results
+
+def grid_search():
+    data = d.to_surprise_read('../data/data_surprise.csv')
+
+    cray_param = {'bsl_options':
+                      {'method': ['als'],
+                       'reg_i': [5, 10, 15, 20],
+                       'reg_u': [5, 10, 15, 20],
+                       'n_epochs': [5, 10, 15, 20],
+                       }}
+
+    gs = GridSearchCV(BaselineOnly,
+                      param_grid,
+                      measures=['rmse'], cv=12, n_jobs=16, joblib_verbose=True)
+    gs.fit(data)
+    pickle.dump(gs, open("output/GridSearch.result", "wb"))
+    return gs
 
 
 
