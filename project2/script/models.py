@@ -18,6 +18,9 @@ from surprise import CoClustering
 from surprise import BaselineOnly
 from surprise.model_selection import KFold
 from sklearn.metrics import mean_squared_error
+from surprise.model_selection import GridSearchCV
+
+import dataset as d
 
 import os
 
@@ -254,7 +257,8 @@ def cross_validates_one_by_one(pool, whole_data, model_name):
 def grid_search():
     data = d.to_surprise_read('../data/data_surprise.csv')
 
-    cray_param = {
+    print("Start grid search")
+    crazy_param = {
         'bsl_options': {
             'method': ['als'],
             'reg_i': [5, 10, 15, 20],
@@ -263,7 +267,7 @@ def grid_search():
         }}
 
     gs = GridSearchCV(BaselineOnly,
-                      param_grid,
+                      crazy_param,
                       measures=['rmse'], cv=12, n_jobs=16, joblib_verbose=True)
     gs.fit(data)
     pickle.dump(gs, open("output/GridSearch.result", "wb"))
