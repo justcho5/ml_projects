@@ -254,12 +254,13 @@ def cross_validates_one_by_one(pool, whole_data, model_name):
 def grid_search():
     data = d.to_surprise_read('../data/data_surprise.csv')
 
-    cray_param = {'bsl_options':
-                      {'method': ['als'],
-                       'reg_i': [5, 10, 15, 20],
-                       'reg_u': [5, 10, 15, 20],
-                       'n_epochs': [5, 10, 15, 20],
-                       }}
+    cray_param = {
+        'bsl_options': {
+            'method': ['als'],
+            'reg_i': [5, 10, 15, 20],
+            'reg_u': [5, 10, 15, 20],
+            'n_epochs': [5, 10, 15, 20]
+        }}
 
     gs = GridSearchCV(BaselineOnly,
                       param_grid,
