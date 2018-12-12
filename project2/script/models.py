@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
+import numpy as np
 import pickle
 
 import surprise as s
@@ -15,7 +16,7 @@ from surprise import KNNWithMeans
 from surprise import KNNBaseline
 from surprise import CoClustering
 from surprise import BaselineOnly
-from sklearn.model_selection import KFold
+from surprise.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 
 import os
@@ -29,23 +30,15 @@ from tqdm import tqdm
     #def __init(self, full_data):
         #self.full_data = full_data
 
-def to_surprise_datset(trainset, testset):
-    df_data = pd.DataFrame(trainset, columns=['userID', 'itemID', 'rating'])
-    reader = Reader(rating_scale=(1, 5))
-    data_train = s.dataset.DatasetAutoFolds(df=df_data, reader=reader)
-    return data_train
-
 class SurpriseBaselineOnly:
     def __init__(self):
         self.name = 'BaselineOnly'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = BaselineOnly()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -57,12 +50,10 @@ class SurpriseCoClustering:
         self.name = 'CoClustering'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = CoClustering()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -74,12 +65,10 @@ class SurpriseKNNBaseline:
         self.name = 'KNNBaseline'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = KNNBaseline()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -91,12 +80,10 @@ class SurpriseKNNWithMeans:
         self.name = 'KNNWithMeans'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = KNNWithMeans()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -109,12 +96,10 @@ class SurpriseKNNBasic:
         self.name = 'KNNBasic'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = KNNBasic()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -126,12 +111,10 @@ class SurpriseNMF:
         self.name = 'NMF'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = NMF()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -143,12 +126,10 @@ class SurpriseSvdPPModel:
         self.name = 'Surprise SVDpp'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = SVDpp()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -160,12 +141,10 @@ class SurpriseSvdModel:
         self.name = 'Surprise SVD'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = SVD()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -177,12 +156,10 @@ class SurpriseSlopeOneModel:
         self.name = 'Surprise SlopeOne'
 
     def fit(self, trainset, testset):
-        data_train = to_surprise_datset(trainset, testset)
-
         # train and test algorithm.
         algo = SlopeOne()
 
-        algo.fit(data_train.build_full_trainset())
+        algo.fit(trainset)
         predictions = algo.test(testset)
 
         # Compute and print Root Mean Squared Error
@@ -252,16 +229,17 @@ def cross_validate(pool, whole_data, is_parallel=True):
     return results
 
 def cross_validates_one_by_one(pool, whole_data, model_name):
-
-    kf = KFold(n_splits=12)
+    file_path = '../data/kiru.csv'
+    reader = Reader(line_format='user item rating', sep=',')
+    data = Dataset.load_from_file(file_path, reader=reader)
+    kf = KFold(n_splits = 12)
 
     results = []
-    splits = list(kf.split(whole_data))
+    splits = list(kf.split(data))
 
     print("running CV")
     ## run the code sequentially or parallely
-    x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]], model_name), splits))
-
+    x = list(map(lambda x : (x[0], x[1], model_name), splits))
     for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
         results.append(result)
 

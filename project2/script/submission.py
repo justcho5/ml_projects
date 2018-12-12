@@ -28,3 +28,5 @@ def create_submission_file(model, output_file):
         f.write("Id,Prediction\n")
         for item in tqdm(predictions):
             f.write("r{}_c{},{}\n".format(item[0], item[1], int(round(item[2]))))
+
+    return predictions

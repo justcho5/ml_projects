@@ -34,14 +34,15 @@ def main():
         data = d.read_data(FILE_NAME)
         data = np.array(data)
 
-        models = ["SurpriseSlopeOneModel",
-                  "SurpriseSvdModel",
-                  "SurpriseSvdPPModel",
-                  "SurpriseNMF",
-                  "SurpriseKNNBasic",
-                  "SurpriseKNNWithMeans",
-                  "SurpriseKNNBaseline",
-                  "SurpriseCoClustering",
+        models = [
+                  #"SurpriseSlopeOneModel",
+                  #"SurpriseSvdModel",
+                  #"SurpriseSvdPPModel",
+                  #"SurpriseNMF",
+                  #"SurpriseKNNBasic",
+                  #"SurpriseKNNWithMeans",
+                  #"SurpriseKNNBaseline",
+                  #"SurpriseCoClustering",
                   "SurpriseBaselineOnly"]
 
         for model in models:
