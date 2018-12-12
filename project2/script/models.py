@@ -229,7 +229,7 @@ def cross_validate(pool, whole_data, is_parallel=True):
     return results
 
 def cross_validates_one_by_one(pool, whole_data, model_name):
-    file_path = '../data/kiru.csv'
+    file_path = '../data/data_surprise.csv'
     reader = Reader(line_format='user item rating', sep=',')
     data = Dataset.load_from_file(file_path, reader=reader)
     kf = KFold(n_splits = 12)
