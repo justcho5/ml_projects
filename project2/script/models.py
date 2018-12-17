@@ -14,7 +14,9 @@ from surprise import NMF
 from surprise import KNNBasic
 from surprise import KNNWithMeans
 from surprise import KNNBaseline
+from surprise import KNNWithZScore
 from surprise import CoClustering
+
 from surprise import BaselineOnly
 from surprise.model_selection import KFold
 from sklearn.metrics import mean_squared_error
@@ -26,12 +28,13 @@ import os
 
 from tqdm import tqdm
 
-#from tqdm import tqdm_notebook
-#tqdm = tqdm_notebook
 
-#class Dataset:
-    #def __init(self, full_data):
-        #self.full_data = full_data
+# from tqdm import tqdm_notebook
+# tqdm = tqdm_notebook
+
+# class Dataset:
+# def __init(self, full_data):
+# self.full_data = full_data
 
 class SurpriseBaselineOnly:
     def __init__(self):
@@ -48,6 +51,7 @@ class SurpriseBaselineOnly:
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
 
+
 class SurpriseCoClustering:
     def __init__(self):
         self.name = 'CoClustering'
@@ -63,6 +67,7 @@ class SurpriseCoClustering:
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
 
+
 class SurpriseKNNBaseline:
     def __init__(self):
         self.name = 'KNNBaseline'
@@ -77,6 +82,23 @@ class SurpriseKNNBaseline:
         # Compute and print Root Mean Squared Error
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
+
+
+class SurpriseKNNWithZScore:
+    def __init__(self):
+        self.name = 'SurpriseKNNWithZScore'
+
+    def fit(self, trainset, testset):
+        # train and test algorithm.
+        algo = SurpriseKNNWithZScore()
+
+        algo.fit(trainset)
+        predictions = algo.test(testset)
+
+        # Compute and print Root Mean Squared Error
+        self.rmse = accuracy.rmse(predictions, verbose=False)
+        self.algo = algo
+
 
 class SurpriseKNNWithMeans:
     def __init__(self):
@@ -94,6 +116,7 @@ class SurpriseKNNWithMeans:
 
         self.algo = algo
 
+
 class SurpriseKNNBasic:
     def __init__(self):
         self.name = 'KNNBasic'
@@ -108,6 +131,7 @@ class SurpriseKNNBasic:
         # Compute and print Root Mean Squared Error
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
+
 
 class SurpriseNMF:
     def __init__(self):
@@ -124,6 +148,7 @@ class SurpriseNMF:
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
 
+
 class SurpriseSvdPPModel:
     def __init__(self):
         self.name = 'Surprise SVDpp'
@@ -138,6 +163,7 @@ class SurpriseSvdPPModel:
         # Compute and print Root Mean Squared Error
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
+
 
 class SurpriseSvdModel:
     def __init__(self):
@@ -154,6 +180,7 @@ class SurpriseSvdModel:
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
 
+
 class SurpriseSlopeOneModel:
     def __init__(self):
         self.name = 'Surprise SlopeOne'
@@ -168,6 +195,7 @@ class SurpriseSlopeOneModel:
         # Compute and print Root Mean Squared Error
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
+
 
 def call_algo(i):
     trainset, testset, model_name = i
@@ -201,13 +229,17 @@ def call_algo(i):
     if "SurpriseBaselineOnly" in model_name:
         models.append(SurpriseBaselineOnly())
 
+    if "SurpriseBaselineOnly" in model_name:
+        models.append(SurpriseBaselineOnly())
+
     for m in models:
         m.fit(trainset, testset)
 
     return models
 
+
 def cross_validate(pool, whole_data, is_parallel=True):
-    kf = KFold(n_splits = 8)
+    kf = KFold(n_splits=8)
 
     results = []
     splits = list(kf.split(whole_data))
@@ -231,16 +263,17 @@ def cross_validate(pool, whole_data, is_parallel=True):
 
     return results
 
+
 def cross_validates_one_by_one(pool, whole_data, model_name):
     data = d.to_surprise_read('../data/data_surprise.csv')
-    kf = KFold(n_splits = 12)
+    kf = KFold(n_splits=12)
 
     results = []
     splits = list(kf.split(data))
 
     print("running CV")
     ## run the code sequentially or parallely
-    x = list(map(lambda x : (x[0], x[1], model_name), splits))
+    x = list(map(lambda x: (x[0], x[1], model_name), splits))
     for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
         results.append(result)
 
@@ -254,24 +287,19 @@ def cross_validates_one_by_one(pool, whole_data, model_name):
     pickle.dump(results, open("result/" + model_name + ".result", "wb"))
     return results
 
+
 def grid_search():
     data = d.to_surprise_read('../data/data_surprise.csv')
 
-    print("Start grid search")
+    print("Start grid search for KNNBasic")
     crazy_param = {
-        'bsl_options': {
-            'method': ['als'],
-            'reg_i': [5, 10, 15, 20],
-            'reg_u': [5, 10, 15, 20],
-            'n_epochs': [5, 10, 15, 20]
-        }}
+        'k': list(range(5, 150))
+        'min_k': list(range(1, 50))
+    }
 
-    gs = GridSearchCV(BaselineOnly,
+    gs = GridSearchCV(KNNBasic,
                       crazy_param,
                       measures=['rmse'], cv=12, n_jobs=16, joblib_verbose=True)
     gs.fit(data)
-    pickle.dump(gs, open("output/GridSearch.result", "wb"))
+    pickle.dump(gs, open("output/GridSearch_KNNBasic.result", "wb"))
     return gs
-
-
-

@@ -43,7 +43,8 @@ def main():
                   #"SurpriseKNNWithMeans",
                   #"SurpriseKNNBaseline",
                   #"SurpriseCoClustering",
-                  "SurpriseBaselineOnly"]
+                  #"SurpriseBaselineOnly",
+                  "SurpriseKNNWithZScore"]
 
         for model in models:
             print("Start: {}".format(model))
