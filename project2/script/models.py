@@ -260,7 +260,7 @@ def call_algo(i):
         models.append(SurpriseBaselineOnly())
 
     print("Fit models")
-    for m in models:
+    for m in tqdm(models, desc=m.name):
         m.fit(trainset, testset)
 
     # do blening
@@ -303,8 +303,11 @@ def cross_validate(pool, whole_data, is_parallel=True):
     return results
 
 
-def cross_validates_one_by_one(pool, model_name, path='../data/data_surprise.csv',
-                               splits=12):
+def cross_validates_one_by_one(pool, model_name,
+                               path='../data/data_surprise.csv',
+                               splits = 12):
+
+    print("Running with models '{}' and split {}".format(model_name, splits))
     data = d.to_surprise_read(path)
     kf = KFold(n_splits=splits)
 
