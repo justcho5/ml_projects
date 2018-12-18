@@ -163,7 +163,7 @@ def cross_validate(pool,
         os.makedirs("result")
 
     file_to_write_to = "result/{}.result".format(output_file_name)
-    print("Write rseult to file", file_to_write_to)
+    print("Write result to file", file_to_write_to)
     pickle.dump(results, open(file_to_write_to, "wb"))
     return results
 
