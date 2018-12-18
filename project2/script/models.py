@@ -31,166 +31,14 @@ import os
 
 from tqdm import tqdm
 
-
-# from tqdm import tqdm_notebook
-# tqdm = tqdm_notebook
-
-# class Dataset:
-# def __init(self, full_data):
-# self.full_data = full_data
-
-class SurpriseBaselineOnly:
-    def __init__(self):
-        self.name = 'BaselineOnly'
+class SurpriseBasedModel:
+    def __init__(self, model, name):
+        self.name = name
+        self.model = model
 
     def fit(self, trainset, testset):
         # train and test algorithm.
-        algo = BaselineOnly()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseCoClustering:
-    def __init__(self):
-        self.name = 'CoClustering'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = CoClustering()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseKNNBaseline:
-    def __init__(self):
-        self.name = 'KNNBaseline'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = KNNBaseline()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseKNNWithZScore:
-    def __init__(self):
-        self.name = 'SurpriseKNNWithZScore'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = SurpriseKNNWithZScore()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseKNNWithMeans:
-    def __init__(self):
-        self.name = 'KNNWithMeans'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = KNNWithMeans()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-
-        self.algo = algo
-
-
-class SurpriseKNNBasic:
-    def __init__(self):
-        self.name = 'KNNBasic'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = KNNBasic()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseNMF:
-    def __init__(self):
-        self.name = 'NMF'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = NMF()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseSvdPPModel:
-    def __init__(self):
-        self.name = 'Surprise SVDpp'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = SVDpp()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseSvdModel:
-    def __init__(self):
-        self.name = 'Surprise SVD'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = SVD()
-
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
-        self.algo = algo
-
-
-class SurpriseSlopeOneModel:
-    def __init__(self):
-        self.name = 'Surprise SlopeOne'
-
-    def fit(self, trainset, testset):
-        # train and test algorithm.
-        algo = SlopeOne()
+        algo = self.model()
 
         algo.fit(trainset)
         predictions = algo.test(testset)
@@ -224,129 +72,98 @@ def get_predictions(models, data_to_predict):
     return result
 
 
+def blending_result(models, testset):
+    # do blening
+    if len(models) > 1:
+
+        print("Do blending")
+        model_predictions = get_predictions(models, testset)
+        real = list(map(lambda x: x[2], testset))
+
+        w0 = [1 / len(models)] * len(models)
+        result = minimize(fun=calcualte_mean_square_error,
+                          x0=w0,
+                          args=(model_predictions, real), options={'disp': True})
+        print("Best blended rmse: ", result.fun)
+        return result
+    else:
+        return None
+
+
 def call_algo(i):
     trainset, testset, model_name = i
 
     models = []
 
-    if "SurpriseSlopeOneModel" in model_name:
-        models.append(SurpriseSlopeOneModel())
+    if "BaselineOnly" in model_name:
+        models.append(SurpriseBasedModel(BaselineOnly, "BaselineOnly"))
 
-    if "SurpriseSvdModel" in model_name:
-        models.append(SurpriseSvdModel())
+    if "KNNBasic" in model_name:
+        models.append(SurpriseBasedModel(KNNBasic, "KNNBasic"))
 
-    if "SurpriseSvdPPModel" in model_name:
-        models.append(SurpriseSvdPPModel())
+    if "KNNWithMeans" in model_name:
+        models.append(SurpriseBasedModel(KNNWithMeans, "KNNWithMeans"))
 
-    if "SurpriseNMF" in model_name:
-        models.append(SurpriseNMF())
+    if "KNNWithZScore" in model_name:
+        models.append(SurpriseBasedModel(KNNWithZScore, "KNNWithZScore"))
 
-    if "SurpriseKNNBasic" in model_name:
-        models.append(SurpriseKNNBasic())
+    if "KNNBaseline" in model_name:
+        models.append(SurpriseBasedModel(KNNBaseline, "KNNBaseline"))
 
-    if "SurpriseKNNWithMeans" in model_name:
-        models.append(SurpriseKNNWithMeans())
+    if "SVD" in model_name:
+        models.append(SurpriseBasedModel(SVD, "SVD"))
 
-    if "SurpriseKNNBaseline" in model_name:
-        models.append(SurpriseKNNBaseline())
+    if "SVDpp" in model_name:
+        models.append(SurpriseBasedModel(SVDpp, "SVDpp"))
 
-    if "SurpriseCoClustering" in model_name:
-        models.append(SurpriseCoClustering())
+    if "NMF" in model_name:
+        models.append(SurpriseBasedModel(NMF, "NMF"))
 
-    if "SurpriseBaselineOnly" in model_name:
-        models.append(SurpriseBaselineOnly())
+    if "SlopeOne" in model_name:
+        models.append(SurpriseBasedModel(SlopeOne, "SlopeOne"))
 
-    if "SurpriseBaselineOnly" in model_name:
-        models.append(SurpriseBaselineOnly())
+    if "CoClustering" in model_name:
+        models.append(SurpriseBasedModel(CoClustering, "CoClustering"))
 
-    print("Fit models")
-    t = tqdm(models)
-    for m in t:
-        t.set_description(m.name)
+    print("Fit each model")
+    progress = tqdm(models)
+    for m in progress:
+        progress.set_description(m.name)
         m.fit(trainset, testset)
 
-
-    # do blening
-    print("Do blending")
-    model_predictions = get_predictions(models, testset)
-    real = list(map(lambda x: x[2], testset))
-
-    w0 = [1 / len(models)] * len(models)
-    result = minimize(fun=calcualte_mean_square_error, x0=w0,
-                      args=(model_predictions, real),
-                      options={'maxiter': 1000, 'disp': True})
-
-    print("Best blended rmse: ", result.fun)
-    return (models, result)
+    blending =  blending_result(models, testset)
+    return (models, blending)
 
 
-def cross_validate(pool, whole_data, is_parallel=True):
-    kf = KFold(n_splits=8)
+def cross_validate(pool,
+                   model_to_param,
+                   output_file_name,
+                   data_file,
+                   splits = 12):
 
-    results = []
-    splits = list(kf.split(whole_data))
+    models = list(model_to_param.keys())
+    print("Running with models '{}' and split {}".format(models, splits))
 
-    print("running CV")
-    ## run the code sequentially or parallely
-    if is_parallel:
-        x = list(map(lambda x: (whole_data[x[0]], whole_data[x[1]]), splits))
-        for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
-            results.append(result)
-    else:
-        for train, test in tqdm(splits):
-            trainset = whole_data[train]
-            testset = whole_data[test]
-            train_test = (trainset, testset)
-            results.append(call_algo(train_test))
-
-    for m in range(len(results[0])):
-        for r in results:
-            print(r[m].name, r[m].rmse)
-
-    return results
-
-
-def cross_validates_one_by_one(pool, model_name,
-                               path='../data/data_surprise.csv',
-                               splits = 12):
-
-    print("Running with models '{}' and split {}".format(model_name, splits))
-    data = d.to_surprise_read(path)
-    kf = KFold(n_splits=splits)
+    data = d.to_surprise_read(data_file)
+    kf = KFold(n_splits = splits)
 
     results = []
     print("Split data")
     splits = list(kf.split(data))
 
     print("running CV")
-    ## run the code sequentially or parallely
-    x = list(map(lambda x: (x[0], x[1], model_name), splits))
-    for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
-        results.append(result)
 
-    #for m in range(len(results[0])):
-        #for r in results:
-            #print(r)
-            #print(r[m].name, r[m].rmse)
+    ## run the code sequentially or parallely
+    argument_list = list(map(lambda x: (x[0], x[1], model_to_param), splits))
+
+    for result in tqdm(pool.imap(call_algo, argument_list), total=len(argument_list), desc="CV"):
+        results.append(result)
 
     if not os.path.exists("result"):
         os.makedirs("result")
-    pickle.dump(results, open("result/out.result", "wb"))
+
+    file_to_write_to = "result/{}.result".format(output_file_name)
+    print("Write rseult to file", file_to_write_to)
+    pickle.dump(results, open(file_to_write_to, "wb"))
     return results
 
-
-def grid_search():
-    data = d.to_surprise_read('../data/data_surprise.csv')
-
-    print("Start grid search for KNNBaseline")
-    crazy_param = {
-        'k': np.arange(1, 100, 10),
-    }
-
-    gs = GridSearchCV(KNNBasic,
-                      crazy_param,
-                      return_train_measures=True,
-                      measures=['rmse'], cv=12, n_jobs=16, joblib_verbose=True)
-    gs.fit(data)
-    pickle.dump(gs, open("output/GridSearch_KNNBaseline.result", "wb"))
-    return gs
