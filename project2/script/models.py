@@ -301,8 +301,8 @@ def cross_validate(pool, whole_data, is_parallel=True):
     return results
 
 
-def cross_validates_one_by_one(pool, model_name, path='../data/data_surprise_small.csv',
-                               splits=2):
+def cross_validates_one_by_one(pool, model_name, path='../data/data_surprise.csv',
+                               splits=12):
     data = d.to_surprise_read(path)
     kf = KFold(n_splits=splits)
 
