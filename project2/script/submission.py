@@ -15,6 +15,19 @@ def read_txt(path):
         return f.read().splitlines()
 
 
+
+def create_predictions(model ):
+    lines = read_txt('data/sample_submission.csv')[1:]
+    data = [deal_line(line) for line in lines]
+
+    predictions = []
+    for each in tqdm(data):
+        pred1 = model.predict(str(each[0]), str(each[1])).est
+        predictions.append((each[0], each[1], pred1))
+
+    return predictions
+
+
 def create_submission_file(model, output_file):
     lines = read_txt('data/sample_submission.csv')[1:]
     data = [deal_line(line) for line in lines]
