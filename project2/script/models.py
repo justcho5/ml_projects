@@ -260,8 +260,11 @@ def call_algo(i):
         models.append(SurpriseBaselineOnly())
 
     print("Fit models")
-    for m in tqdm(models, desc=m.name):
+    t = tqdm(models)
+    for m in t:
+        t.set_description(m.name)
         m.fit(trainset, testset)
+
 
     # do blening
     print("Do blending")
