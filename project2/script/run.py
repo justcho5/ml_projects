@@ -27,6 +27,7 @@ import sys
 #FILE_NAME = '../data/data_train_small.csv'
 FILE_NAME = '../data/data_train.csv'
 
+
 def main():
     print("Start script");
 
@@ -35,8 +36,31 @@ def main():
         data = np.array(data)
 
         models = [
-                  #"SurpriseSlopeOneModel",
-                  #"SurpriseSvdModel",
+                  "SurpriseSlopeOneModel",
+                  "SurpriseSvdModel",
+                  "SurpriseSvdPPModel",
+                  "SurpriseNMF",
+                  "SurpriseKNNBasic",
+                  "SurpriseKNNWithMeans",
+                  "SurpriseKNNBaseline",
+                  "SurpriseCoClustering",
+                  "SurpriseBaselineOnly",
+                  "SurpriseKNNWithZScore"
+        ]
+        result = m.cross_validates_one_by_one(p, str(models))
+
+    print("Script ended")
+
+def main2():
+    print("Start script");
+
+    with Pool(12) as p:
+        data = d.read_data(FILE_NAME)
+        data = np.array(data)
+
+        models = [
+                  "SurpriseSlopeOneModel",
+                  "SurpriseSvdModel",
                   #"SurpriseSvdPPModel",
                   #"SurpriseNMF",
                   #"SurpriseKNNBasic",
@@ -44,12 +68,13 @@ def main():
                   #"SurpriseKNNBaseline",
                   #"SurpriseCoClustering",
                   #"SurpriseBaselineOnly",
-                  "SurpriseKNNWithZScore"]
+                  #"SurpriseKNNWithZScore"
+        ]
 
         for model in models:
             print("Start: {}".format(model))
             start_time = time.time()
-            result = m.cross_validates_one_by_one(p, data, model)
+            result = m.cross_validates_one_by_one(p, model)
             diff =  (time.time() - start_time)
             print("Time taken: {} {}s".format(model, diff))
 

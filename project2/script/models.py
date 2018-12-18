@@ -22,6 +22,9 @@ from surprise.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 from surprise.model_selection import GridSearchCV
 
+from scipy.optimize import minimize
+
+
 import dataset as d
 
 import os
@@ -196,6 +199,30 @@ class SurpriseSlopeOneModel:
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
 
+def calcualte_mean_square_error(weights, model_predictions, real):
+    preds = []
+    for i, pred in enumerate(model_predictions):
+        mix_prediction = 0
+        for i, w in enumerate(weights):
+            mix_prediction += weights[i] * pred[i]
+        preds.append(mix_prediction)
+    preds = np.array(preds)
+    preds = preds.clip(1, 5)
+
+    mse = mean_squared_error(preds, real)
+    return np.sqrt(mse)
+
+
+def get_predictions(models, data_to_predict):
+    result = []
+    for each_data in tqdm(data_to_predict):
+        predictions = []
+        for each_model in models:
+            p = each_model.algo.predict(each_data[0], each_data[1]).est
+            predictions.append(p)
+        result.append(predictions)
+    return result
+
 
 def call_algo(i):
     trainset, testset, model_name = i
@@ -235,7 +262,17 @@ def call_algo(i):
     for m in models:
         m.fit(trainset, testset)
 
-    return models
+    # do blening
+    model_predictions = get_predictions(models, testset)
+    real = list(map(lambda x: x[2], testset))
+
+    w0 = [1 / len(models)] * len(models)
+    result = minimize(fun=calcualte_mean_square_error, x0=w0,
+                      args=(model_predictions, real),
+                      options={'maxiter': 1000, 'disp': True})
+
+    print("Best blended rmse: ", result.fun)
+    return (models, result)
 
 
 def cross_validate(pool, whole_data, is_parallel=True):
@@ -264,9 +301,10 @@ def cross_validate(pool, whole_data, is_parallel=True):
     return results
 
 
-def cross_validates_one_by_one(pool, whole_data, model_name):
-    data = d.to_surprise_read('../data/data_surprise.csv')
-    kf = KFold(n_splits=12)
+def cross_validates_one_by_one(pool, model_name, path='../data/data_surprise_small.csv',
+                               splits=2):
+    data = d.to_surprise_read(path)
+    kf = KFold(n_splits=splits)
 
     results = []
     splits = list(kf.split(data))
@@ -277,14 +315,14 @@ def cross_validates_one_by_one(pool, whole_data, model_name):
     for result in tqdm(pool.imap(call_algo, x), total=len(x), desc="CV"):
         results.append(result)
 
-    for m in range(len(results[0])):
-        for r in results:
-            print(r[m].name, r[m].rmse)
+    #for m in range(len(results[0])):
+        #for r in results:
+            #print(r)
+            #print(r[m].name, r[m].rmse)
 
     if not os.path.exists("result"):
         os.makedirs("result")
-
-    pickle.dump(results, open("result/" + model_name + ".result", "wb"))
+    pickle.dump(results, open("result/out.result", "wb"))
     return results
 
 
