@@ -259,10 +259,12 @@ def call_algo(i):
     if "SurpriseBaselineOnly" in model_name:
         models.append(SurpriseBaselineOnly())
 
+    print("Fit models")
     for m in models:
         m.fit(trainset, testset)
 
     # do blening
+    print("Do blending")
     model_predictions = get_predictions(models, testset)
     real = list(map(lambda x: x[2], testset))
 
@@ -307,6 +309,7 @@ def cross_validates_one_by_one(pool, model_name, path='../data/data_surprise.csv
     kf = KFold(n_splits=splits)
 
     results = []
+    print("Split data")
     splits = list(kf.split(data))
 
     print("running CV")
