@@ -293,8 +293,8 @@ def grid_search():
 
     print("Start grid search for KNNBasic")
     crazy_param = {
-        'k': list(range(5, 150))
-        'min_k': list(range(1, 50))
+        'k': np.arange(5, 50, 5),
+        'min_k': [1, 2]
     }
 
     gs = GridSearchCV(KNNBasic,
