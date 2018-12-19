@@ -26,6 +26,7 @@ import sys
 
 FILE_NAME = '../data/data_surprise.csv'
 
+
 def with_default_param():
     print("Start script");
 
@@ -33,34 +34,27 @@ def with_default_param():
         model_to_param = {
             "BaselineOnly": {},
             "KNNBasic": {},
-            "KNNWithMeans": {},
-            "KNNWithZScore": {},
-            "KNNBaseline": {},
+            # "KNNWithMeans": {},
+            # "KNNWithZScore": {},
+            # "KNNBaseline": {},
             "SVD": {},
-            "SVDpp": {},
-            "NMF": {},
+            # "SVDpp": {},
+            # "NMF": {},
             "SlopeOne": {},
-            "CoClustering": {},
+            # "CoClustering": {},
         }
 
         start_time = time.time()
 
-        lower_result = m.cross_validate(pool=pool,
-                                        model_to_param=model_to_param,
-                                        output_file_name="all_blending",
-                                        data_file=FILE_NAME
-
-        upper = m.cross_validate(pool=pool,
-                                        model_to_param=model_to_param,
-                                        output_file_name="all_blending",
-                                        data_file=FILE_NAME)
-
+        all = m.cross_validate(pool=pool,
+                               model_to_param=model_to_param,
+                               output_file_name="all_blending",
+                               data_file=FILE_NAME)
 
         diff = (time.time() - start_time)
         print("Time taken: {}s".format(diff))
 
-
-print("Script ended")
+        print("Script ended")
 
 if __name__ == "__main__":
     with_default_param()
