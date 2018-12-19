@@ -60,12 +60,6 @@ def with_default_param():
         diff = (time.time() - start_time)
         print("Time taken: {}s".format(diff))
 
-def prediction_with_two(left_result, right_result):
-
-
-
-
-erint("Script ended")
 
 if __name__ == "__main__":
     with_default_param()
