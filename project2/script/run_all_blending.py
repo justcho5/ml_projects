@@ -50,6 +50,12 @@ def with_default_param():
                                         output_file_name="all_blending",
                                         data_file=FILE_NAME
 
+        upper = m.cross_validate(pool=pool,
+                                        model_to_param=model_to_param,
+                                        output_file_name="all_blending",
+                                        data_file=FILE_NAME)
+
+
         diff = (time.time() - start_time)
         print("Time taken: {}s".format(diff))
 
