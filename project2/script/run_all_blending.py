@@ -40,17 +40,15 @@ def with_default_param():
     with Pool(12) as pool:
         model_to_param = {
             "BaselineOnly": {},
-            "KNNBasic":  {},
-            "SVD": {},  #{ 'n_factors': 20 }
+            "SVD": { 'n_factors': 20 },
             "SlopeOne": {},
-
-            # {
-            #     'k': 100,
-            #     'sim_options': {
-            #         'name': 'pearson_baseline',
-            #         'user_based': 'True'
-            #     }
-            # }
+            "KNNBasic":   {
+                 'k': 100,
+                 'sim_options': {
+                     'name': 'pearson_baseline',
+                     'user_based': 'True'
+                 }
+             },
             # "KNNWithMeans": {},
             # "KNNWithZScore": {},
             # "KNNBaseline": {},
