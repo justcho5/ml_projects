@@ -60,7 +60,7 @@ def with_default_param():
 
         all = m.cross_validate(pool=pool,
                                model_to_param=model_to_param,
-                               output_file_name="all_blending",
+                               output_file_name="all_blending_param",
                                data_file=FILE_NAME)
 
         diff = (time.time() - start_time)
