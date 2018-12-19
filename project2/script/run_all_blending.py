@@ -43,11 +43,8 @@ def with_default_param():
             "SVD": { 'n_factors': 20 },
             "SlopeOne": {},
             "KNNBasic":   {
-                 'k': 100,
-                 'sim_options': {
-                     'name': 'pearson_baseline',
-                     'user_based': 'True'
-                 }
+                 'k': 100
+                 #'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
              },
             # "KNNWithMeans": {},
             # "KNNWithZScore": {},
