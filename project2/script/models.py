@@ -91,7 +91,7 @@ def blending_result(models, testset):
 
 
 def call_algo(i):
-    trainset, testset, model_name = i
+    trainset, testset, model_name, with_blending = i
 
     models = []
 
@@ -131,7 +131,11 @@ def call_algo(i):
         progress.set_description(m.name)
         m.fit(trainset, testset)
 
-    blending =  blending_result(models, testset)
+    if with_blending:
+        blending =  blending_result(models, testset)
+    else:
+        blending = None
+
     return (models, blending)
 
 
@@ -139,7 +143,8 @@ def cross_validate(pool,
                    model_to_param,
                    output_file_name,
                    data_file,
-                   splits = 12):
+                   splits = 12,
+                   with_blending=False):
 
     models = list(model_to_param.keys())
     print("Running with models '{}' and split {}".format(models, splits))
@@ -154,7 +159,7 @@ def cross_validate(pool,
     print("running CV")
 
     ## run the code sequentially or parallely
-    argument_list = list(map(lambda x: (x[0], x[1], model_to_param), splits))
+    argument_list = list(map(lambda x: (x[0], x[1], model_to_param, with_blending), splits))
 
     for result in tqdm(pool.imap(call_algo, argument_list), total=len(argument_list), desc="CV"):
         results.append(result)

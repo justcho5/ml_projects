@@ -27,6 +27,12 @@ def create_predictions(model ):
 
     return predictions
 
+def write_predictions_to_file(predictions, output_file):
+    with open(output_file, 'w') as f:
+        f.write("Id,Prediction\n")
+        for item in tqdm(predictions):
+            f.write("r{}_c{},{}\n".format(item[0], item[1], int(round(item[2]))))
+    return predictions
 
 def create_submission_file(model, output_file):
     lines = read_txt('data/sample_submission.csv')[1:]
@@ -37,9 +43,5 @@ def create_submission_file(model, output_file):
         pred1 = model.predict(str(each[0]), str(each[1])).est
         predictions.append((each[0], each[1], pred1))
 
-    with open(output_file, 'w') as f:
-        f.write("Id,Prediction\n")
-        for item in tqdm(predictions):
-            f.write("r{}_c{},{}\n".format(item[0], item[1], int(round(item[2]))))
-
+    write_predictions_to_file(predictions, output_file)
     return predictions
