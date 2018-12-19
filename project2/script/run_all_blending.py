@@ -68,6 +68,7 @@ def with_default_param():
 
         models = best[0]
         weights = best[1].x
+        print("Weights: ", weights)
         print("Best rmse: ", best[1].fun)
 
         print("Read submission file")
