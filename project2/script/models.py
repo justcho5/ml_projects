@@ -31,6 +31,20 @@ import os
 
 from tqdm import tqdm
 
+class GlobalMean:
+    def __init__(self):
+        self.name = "GlobalMean"
+
+    def fit(self, trainset, testset, param):
+
+        #algo.fit(trainset)
+        #predictions = algo.test(testset)
+
+        # Compute and print Root Mean Squared Error
+        #self.rmse = accuracy.rmse(predictions, verbose=False)
+        #self.algo = algo
+
+
 class SurpriseBasedModel:
     def __init__(self, model, name):
         self.name = name
@@ -127,6 +141,9 @@ def call_algo(i):
 
     if "CoClustering" in model_name:
         models.append(SurpriseBasedModel(CoClustering, "CoClustering"))
+
+    if "global_mean" in model_name:
+        models.append(GlobalMean())
 
     print("Fit each model")
     progress = tqdm(models)

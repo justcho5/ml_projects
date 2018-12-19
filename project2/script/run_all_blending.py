@@ -52,12 +52,16 @@ def with_default_param():
             # "SVDpp": {},
             # "NMF": {},
             # "CoClustering": {},
+            "global_mean": {},
+            #"user_mean": {},
+            #"movie_mean": {}
         }
         output_file_name = "all_blending_optimal"
 
         start_time = time.time()
 
         all = m.cross_validate(pool=pool,
+                               splits=3,
                                model_to_param=model_to_param,
                                output_file_name=output_file_name,
                                data_file=FILE_NAME,
@@ -69,6 +73,7 @@ def with_default_param():
         models = best[0]
         weights = best[1].x
         print("Weights: ", weights)
+
         print("Best rmse: ", best[1].fun)
 
         print("Read submission file")
