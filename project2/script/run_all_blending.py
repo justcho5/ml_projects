@@ -37,7 +37,7 @@ def split_user_movie(pandas_data_frame):
 def with_default_param():
     print("Start script");
 
-    with Pool(1) as pool:
+    with Pool(12) as pool:
         model_to_param = {
             "BaselineOnly": {},
             "SVD": { 'n_factors': 20 },
