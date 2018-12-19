@@ -36,9 +36,9 @@ class SurpriseBasedModel:
         self.name = name
         self.model = model
 
-    def fit(self, trainset, testset):
+    def fit(self, trainset, testset, param):
         # train and test algorithm.
-        algo = self.model()
+        algo = self.model(param)
 
         algo.fit(trainset)
         predictions = algo.test(testset)
@@ -129,7 +129,7 @@ def call_algo(i):
     progress = tqdm(models)
     for m in progress:
         progress.set_description(m.name)
-        m.fit(trainset, testset)
+        m.fit(trainset, testset, model_name[m.name])
 
     if with_blending:
         blending =  blending_result(models, testset)
