@@ -25,7 +25,7 @@ import submission as s
 import time
 import sys
 
-FILE_NAME = '../data/data_surprise.csv'
+FILE_NAME = '../data/data_surprise_small.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
 def split_user_movie(pandas_data_frame):
@@ -37,18 +37,18 @@ def split_user_movie(pandas_data_frame):
 def with_default_param():
     print("Start script");
 
-    with Pool(12) as pool:
+    with Pool(1) as pool:
         model_to_param = {
             "BaselineOnly": {},
             "SVD": { 'n_factors': 20 },
             "SlopeOne": {},
-            "KNNBasic":   {
-                 'k': 100
-                 #'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
+            "KNNBaseline":   {
+                 'k': 100,
+                 'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
              },
             # "KNNWithMeans": {},
             # "KNNWithZScore": {},
-            # "KNNBaseline": {},
+            # "KNNBasic": {},
             # "SVDpp": {},
             # "NMF": {},
             # "CoClustering": {},

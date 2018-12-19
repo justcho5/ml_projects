@@ -39,7 +39,7 @@ class SurpriseBasedModel:
     def fit(self, trainset, testset, param):
         if param:
             # train and test algorithm.
-            algo = self.model(param)
+            algo = self.model(**param)
         else:
             algo = self.model()
 
