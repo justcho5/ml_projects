@@ -56,7 +56,7 @@ def with_default_param():
             # "NMF": {},
             # "CoClustering": {},
         }
-        output_file_name = "all_blending"
+        output_file_name = "all_blending_optimal"
 
         start_time = time.time()
 
