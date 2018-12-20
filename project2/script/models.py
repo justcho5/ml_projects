@@ -99,7 +99,7 @@ class MatrixFactor:
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1
         lambda_item = 0.7
-        num_epochs = 20  # number of full passes through the train set
+        num_epochs = 10  # number of full passes through the train set
         #num_epochs = 3  # number of full passes through the train set
         errors = [0]
 
@@ -291,15 +291,17 @@ class GlobalMean:
 
         # calculate mean of all ratings
         global_mean = np.mean(only_ratings_train)
-
-        # get all test ratings
-        only_ratings_test = list(map(lambda x: x[2], testset))
-
-        # our predictions is just the global mean
-        predictions = np.repeat(global_mean, len(testset))
-
-        self.rmse = np.sqrt(mean_squared_error(only_ratings_test, predictions))
         self.global_mean = global_mean
+
+        if testset is not None:
+
+            # get all test ratings
+            only_ratings_test = list(map(lambda x: x[2], testset))
+
+            # our predictions is just the global mean
+            predictions = np.repeat(global_mean, len(testset))
+
+            self.rmse = np.sqrt(mean_squared_error(only_ratings_test, predictions))
 
     def predict(self, user, movie):
         return self.global_mean
@@ -322,16 +324,17 @@ class UserMean:
         # get mean per user
         self.df_user_to_rating = df_train.groupby('user')['rating'].mean()
 
-        # get mean rating per user
-        predictions = []
-        true_rating = []
-        for each in testset:
-            user = each[0]
-            rating = each[2]
-            predictions.append(self.df_user_to_rating.loc[int(user)])
-            true_rating.append(rating)
+        if testset is not None:
+            # get mean rating per user
+            predictions = []
+            true_rating = []
+            for each in testset:
+                user = each[0]
+                rating = each[2]
+                predictions.append(self.df_user_to_rating.loc[int(user)])
+                true_rating.append(rating)
 
-        self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
+            self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
 
     def predict(self, user, movie):
         return self.df_user_to_rating.loc[int(user)]
@@ -351,15 +354,16 @@ class MovieMean:
         # get mean per movie
         self.df_movie_to_rating = df_train.groupby('movie')['rating'].mean()
 
-        predictions = []
-        true_rating = []
-        for each in testset:
-            movie = each[1]
-            rating = each[2]
-            predictions.append(self.df_movie_to_rating.loc[int(movie)])
-            true_rating.append(rating)
+        if testset is not None:
+            predictions = []
+            true_rating = []
+            for each in testset:
+                movie = each[1]
+                rating = each[2]
+                predictions.append(self.df_movie_to_rating.loc[int(movie)])
+                true_rating.append(rating)
 
-        self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
+            self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
 
     def predict(self, user, movie):
         return self.df_movie_to_rating.loc[int(movie)]
@@ -441,52 +445,7 @@ def blending_result(models, testset):
 def call_algo(i):
     trainset, testset, model_name, with_blending, data = i
 
-    models = []
-
-    if "BaselineOnly" in model_name:
-        models.append(SurpriseBasedModel(BaselineOnly, "BaselineOnly"))
-
-    if "KNNBasic" in model_name:
-        models.append(SurpriseBasedModel(KNNBasic, "KNNBasic"))
-
-    if "KNNWithMeans" in model_name:
-        models.append(SurpriseBasedModel(KNNWithMeans, "KNNWithMeans"))
-
-    if "KNNWithZScore" in model_name:
-        models.append(SurpriseBasedModel(KNNWithZScore, "KNNWithZScore"))
-
-    if "KNNBaseline" in model_name:
-        models.append(SurpriseBasedModel(KNNBaseline, "KNNBaseline"))
-
-    if "SVD" in model_name:
-        models.append(SurpriseBasedModel(SVD, "SVD"))
-
-    if "SVDpp" in model_name:
-        models.append(SurpriseBasedModel(SVDpp, "SVDpp"))
-
-    if "NMF" in model_name:
-        models.append(SurpriseBasedModel(NMF, "NMF"))
-
-    if "SlopeOne" in model_name:
-        models.append(SurpriseBasedModel(SlopeOne, "SlopeOne"))
-
-    if "CoClustering" in model_name:
-        models.append(SurpriseBasedModel(CoClustering, "CoClustering"))
-
-    if "GlobalMean" in model_name:
-        models.append(GlobalMean())
-
-    if "UserMean" in model_name:
-        models.append(UserMean())
-
-    if "MovieMean" in model_name:
-        models.append(MovieMean())
-
-    if "MatrixFactor" in model_name:
-        models.append(MatrixFactor())
-
-    if "ALS" in model_name:
-        models.append(ALS())
+    models = model_name_to_model(model_name)
 
     print("Fit each model")
     progress = tqdm(models)
@@ -500,6 +459,41 @@ def call_algo(i):
         blending = None
 
     return (models, blending)
+
+
+def model_name_to_model(model_name):
+    models = []
+    if "BaselineOnly" in model_name:
+        models.append(SurpriseBasedModel(BaselineOnly, "BaselineOnly"))
+    if "KNNBasic" in model_name:
+        models.append(SurpriseBasedModel(KNNBasic, "KNNBasic"))
+    if "KNNWithMeans" in model_name:
+        models.append(SurpriseBasedModel(KNNWithMeans, "KNNWithMeans"))
+    if "KNNWithZScore" in model_name:
+        models.append(SurpriseBasedModel(KNNWithZScore, "KNNWithZScore"))
+    if "KNNBaseline" in model_name:
+        models.append(SurpriseBasedModel(KNNBaseline, "KNNBaseline"))
+    if "SVD" in model_name:
+        models.append(SurpriseBasedModel(SVD, "SVD"))
+    if "SVDpp" in model_name:
+        models.append(SurpriseBasedModel(SVDpp, "SVDpp"))
+    if "NMF" in model_name:
+        models.append(SurpriseBasedModel(NMF, "NMF"))
+    if "SlopeOne" in model_name:
+        models.append(SurpriseBasedModel(SlopeOne, "SlopeOne"))
+    if "CoClustering" in model_name:
+        models.append(SurpriseBasedModel(CoClustering, "CoClustering"))
+    if "GlobalMean" in model_name:
+        models.append(GlobalMean())
+    if "UserMean" in model_name:
+        models.append(UserMean())
+    if "MovieMean" in model_name:
+        models.append(MovieMean())
+    if "MatrixFactor" in model_name:
+        models.append(MatrixFactor())
+    if "ALS" in model_name:
+        models.append(ALS())
+    return models
 
 
 def cross_validate(pool,
