@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
+from itertools import groupby
 import scipy
 import scipy.io
 import scipy.sparse as sp
@@ -73,10 +74,12 @@ def init_MF(train, num_features):
 def compute_error(data, user_features, item_features, nz):
     """compute the loss (MSE) of the prediction of nonzero elements."""
     mse = 0
+    pred_matrix = user_features.T @ item_features
     for row, col in nz:
         item_info = item_features[:, row]
         user_info = user_features[:, col]
         mse += (data[row, col] - user_info.T.dot(item_info)) ** 2
+
     return np.sqrt(1.0 * mse / len(nz))
 
 class MatrixFactor:
@@ -85,7 +88,6 @@ class MatrixFactor:
 
     def fit(self, trainset, testset, param):
         print("Building the matrix")
-
         test = to_matrix(testset)
         train = to_matrix(list(trainset.all_ratings()))
 
@@ -107,8 +109,6 @@ class MatrixFactor:
         # find the non-zero ratings indices
         nz_row, nz_col = train.nonzero()
         nz_train = list(zip(nz_row, nz_col))
-        nz_row, nz_col = test.nonzero()
-        nz_test = list(zip(nz_row, nz_col))
 
         print("learn the matrix factorization using SGD...")
         for it in range(num_epochs):
@@ -136,6 +136,9 @@ class MatrixFactor:
         # evaluate the test error
         self.user_features = user_features
         self.item_features = item_features
+
+        nz_row, nz_col = test.nonzero()
+        nz_test = list(zip(nz_row, nz_col))
         self.rmse = compute_error(test, user_features, item_features, nz_test)
         print("RMSE on test data: {}.".format(rmse))
 
@@ -144,6 +147,13 @@ class MatrixFactor:
         user_info = user_features[:, int(user)]
 
         return user_info.T.dot(item_info)
+
+def group_by(data, index):
+    """group list of list by a specific index."""
+    sorted_data = sorted(data, key=lambda x: x[index])
+    groupby_data = groupby(sorted_data, lambda x: x[index])
+    return groupby_data
+
 
 def build_index_groups(train):
     """build groups for nnz rows and cols."""
@@ -218,9 +228,6 @@ class ALS:
         stop_criterion = 1e-4
         change = 1
         error_list = [0, 0]
-
-        # set seed
-        np.random.seed(988)
 
         # init ALS
         user_features, item_features = init_MF(train, num_features)
