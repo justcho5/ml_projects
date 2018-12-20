@@ -37,8 +37,18 @@ def with_default_param():
             "KNNBaseline": {
                 'k': 150,
             },
-            "KNNBasic": {},
             "NMF": {},
+            "ALS": {},
+            "MatrixFactor": {},
+            "MovieMean": {},
+            "UserMean": {},
+            "GlobalMean": {},
+            "CoClustering": {},
+            "NMF": {},
+
+            "KNNBasic": {},
+            "KNNWithZScore": {},
+            "KNNWithMeans": {},
         }
 
         for model in model_to_param:
