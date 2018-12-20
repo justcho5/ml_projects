@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+'''
+This is the  main file, which contains all models used for this project.
+'''
+
 import pandas as pd
 import numpy as np
 import pickle
@@ -30,6 +34,9 @@ import os
 from tqdm import tqdm
 
 class GlobalMean:
+    ''''
+    Simple Model: always return the global mean
+    '''
     def __init__(self):
         self.name = "GlobalMean"
 
@@ -54,6 +61,10 @@ class GlobalMean:
         return self.global_mean
 
 class UserMean:
+    ''''
+    Simple Model:
+    Find the users mean over all his ratings and use that as the prediction
+    '''
     def __init__(self):
         self.name = "UserMean"
 
@@ -82,6 +93,9 @@ class UserMean:
         return self.df_user_to_rating.loc[int(user)]
 
 class MovieMean:
+    ''''
+    Find the movie mean over all movie-ratings and use that as the prediction
+    '''
     def __init__(self):
         self.name = "MovieMean"
 
@@ -93,7 +107,6 @@ class MovieMean:
         # get mean per movie
         self.df_movie_to_rating = df_train.groupby('movie')['rating'].mean()
 
-        # get mean rating per user
         predictions = []
         true_rating = []
         for each in testset:
@@ -108,17 +121,24 @@ class MovieMean:
         return self.df_movie_to_rating.loc[int(movie)]
 
 class SurpriseBasedModel:
+    '''
+    This is a generic class in order to use the models provided
+    by the surprise library.
+    '''
     def __init__(self, model, name):
         self.name = name
         self.model = model
 
     def fit(self, trainset, testset, param):
+
+        # These additonal parameter given to the model
         if param:
             # train and test algorithm.
             algo = self.model(**param)
         else:
             algo = self.model()
 
+        # fit the model and predict for test result
         algo.fit(trainset)
         predictions = algo.test(testset)
 

@@ -103,7 +103,7 @@ def with_default_param():
 def predict(input):
     items_to_predict, models, predictions, weights = input
     print("Predict for", len(items_to_predict))
-    for each in items_to_predict:
+    for each in tqdm(items_to_predict):
         user = each[1].user
         movie = each[1].movie
 

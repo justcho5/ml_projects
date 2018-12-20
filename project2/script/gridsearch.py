@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+'''
+This file was used during gridsearch to find the best parameter.
+'''
+
+
 import surprise
 import numpy as np
 import pandas as pd

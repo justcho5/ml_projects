@@ -14,8 +14,6 @@ def read_txt(path):
     with open(path, "r") as f:
         return f.read().splitlines()
 
-
-
 def create_predictions(model ):
     lines = read_txt('data/sample_submission.csv')[1:]
     data = [deal_line(line) for line in lines]
