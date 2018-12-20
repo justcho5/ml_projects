@@ -52,9 +52,9 @@ def with_default_param():
             # "SVDpp": {},
             # "NMF": {},
             # "CoClustering": {},
-            "GlobalMean": {},
-            "UserMean": {},
-            #"MovieMean": {}
+            #"GlobalMean": {},
+            #"UserMean": {},
+            "MovieMean": {}
         }
         output_file_name = "all_blending_with_global_mean"
 
@@ -109,7 +109,7 @@ def predict(input):
 
         mix_prediction = 0
         for i, w in enumerate(models):
-            pred = w.algo.predict(user, movie).est
+            pred = w.predict(user, movie)
             mix_prediction += weights[i] * pred
         predictions.append(mix_prediction)
     clipped_predictions = np.clip(predictions, 1, 5)

@@ -212,6 +212,9 @@ def call_algo(i):
     if "UserMean" in model_name:
         models.append(UserMean())
 
+    if "MovieMean" in model_name:
+        models.append(MovieMean())
+
     print("Fit each model")
     progress = tqdm(models)
     for m in progress:
