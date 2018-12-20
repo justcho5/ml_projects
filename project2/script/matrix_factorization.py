@@ -33,10 +33,12 @@ import scipy.sparse as sp
 import dataset as d
 import os
 from tqdm import tqdm
+
 '''
 This part of the source code is mostly from the exercise.
 It has been changed such that you can work with the surprise library model.
 '''
+
 
 def statistics(data):
     '''
@@ -99,6 +101,10 @@ def init_MF(train, num_features):
 
 
 class MatrixFactor:
+    '''
+    This is the exercise from class, just wrapped into a class.
+    '''
+
     def __init__(self):
         self.name = "MatrixFactor"
 
@@ -119,7 +125,6 @@ class MatrixFactor:
         # define parameters
 
         # These are default parameters, expect # of num of epoch to 10
-
         gamma = 0.01
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1

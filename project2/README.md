@@ -6,27 +6,33 @@
 
 ```
 project2/                              # Contains all project files
-├── data/                              # should contains the trainig and test file ( eg. test.csv and train.csv )
-└── plots/                             # Plot output
+├── data/                              # contains the train and tests data
+└── notebooks/                         # Contains Jupyter notebook files.
 └── script/
-    ├── implementation.py
-    ├── helpers.py
+    └── experimental/                  # contains file which were used to test different aproaches ( or started to test)
+    ├── dataset.py
+    ├── gridsearch.py
+    └── matrix_factorization.py
+    └── models.py
+    └── plot_helper.py
     └── run.py
-    └── Plot.ipynb
+    └── run_all_blending.py
+    └── run_all_models_one_by_one.py
+    └── submission.py
 ```
 
 
 **run.py**
+This is the main file, which will reproduce our results.
+It contains all the weights hard-coded with the best parameters for the model.
 
-Main file which contains the code for training and prediction.
+**dataset.py**
+Contains helper function which are used to transfor the surprise strucutre
+to marix form or the given submission file to pandas data frames.
 
-**Plot.ipynb**
-
-Jupyter file, used to generate the plots for the report.
-
-**helpers.py**
-
-Provided helper file.
+**gridsearch.py**
+Helper file which was used to perform grid serach on specific models and
+store the results into a file.
 
 
 ### Requirements
@@ -37,7 +43,7 @@ The python code has been tested with the following versions:
 Python: 3.6.2
 Numpy: 1.13.1
 Pandas: xx
-Surprise: xx
+surprise: xx
 ```
 
 In order to generate the prediction file simply run the run.py script:

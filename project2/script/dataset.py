@@ -84,3 +84,8 @@ def to_surprise_read(file_path='data/data_surprise.csv'):
     data = Dataset.load_from_file(file_path, reader=reader)
     return data
 
+def split_user_movie(pandas_data_frame):
+    user_movie = pandas_data_frame.Id.str.extract(r'r(?P<user>\d+)_c(?P<movie>\d+)')
+    pandas_data_frame['user'] = user_movie.user
+    pandas_data_frame['movie'] = user_movie.movie
+    return pandas_data_frame[['user', 'movie', 'Prediction']]

@@ -30,13 +30,6 @@ FILE_NAME = '../data/data_surprise.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
 
-def split_user_movie(pandas_data_frame):
-    user_movie = pandas_data_frame.Id.str.extract(r'r(?P<user>\d+)_c(?P<movie>\d+)')
-    pandas_data_frame['user'] = user_movie.user
-    pandas_data_frame['movie'] = user_movie.movie
-    return pandas_data_frame[['user', 'movie', 'Prediction']]
-
-
 def main():
     print("Start script");
     start_time = time.time()
@@ -44,26 +37,22 @@ def main():
 
     model_to_param = {
         "BaselineOnly": {},
-        "SVD": ,
+        "SVD": {},
         "SlopeOne": {},
         "KNNBaseline": {
             'k': 150,
         },
-        "MovieMean": {},
-        "MatrixFactor": {},
-        "ALS": {},
+        "KNNBasic": {},
+        "NMF": {},
     }
 
     model_to_weight = {
-        "BaselineOnly": -0.25334606,
-        "SVD": 0.01819908,
-        "SlopeOne": -0.04232111,
-        "KNNBaseline": 0.404621,
-        "GlobalMean": 0.04437225,
-        "UserMean": 0.07933614,
-        "MovieMean": -0.06444559,
-        "MatrixFactor": 0.66204053,
-        "ALS": 0.16096753
+        "BaselineOnly": -0.7855352289256156,
+        "SVD": 0.26101515307439144,
+        "SlopeOne": 0.9527865189392614,
+        "KNNBaseline": 0.47538566082270134,
+        "KNNBasic": 0.13607754030687072,
+        "NMF": -0.033297000709009685,
     }
 
     print("Models: ", model_to_param)
@@ -91,7 +80,7 @@ def main():
 def create_submission(models, output_file_name, weights):
     print("Read submission file")
     df_submission = pd.read_csv(SAMPLE_SUBMISSION)
-    df_submission = split_user_movie(df_submission)
+    df_submission = d.split_user_movie(df_submission)
 
     print("Do predictions in parallel")
     items_to_predict = list(df_submission.iterrows())
@@ -108,7 +97,6 @@ def create_submission(models, output_file_name, weights):
 
         print("Create File")
         s.write_predictions_to_file(new_predictions, output_file_name + "_prediction.csv")
-
 
 def predict(input):
     items_to_predict, models, weights = input
