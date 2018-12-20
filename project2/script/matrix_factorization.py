@@ -105,11 +105,14 @@ class MatrixFactor:
 
         """matrix factorization by SGD."""
         # define parameters
+
+        # These are default parameters, expect # of num of epoch to 10
+
         gamma = 0.01
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1
         lambda_item = 0.7
-        num_epochs = 20  # number of full passes through the train set
+        num_epochs = 10  # number of full passes through the train set
         errors = [0]
 
         # init matrix
