@@ -249,6 +249,7 @@ class ALS:
         lambda_item = 0.7
         stop_criterion = 1e-4
         change = 1
+        error_list = [0, 0]
 
         # init ALS
         user_features, item_features = init_MF(train, num_features)
@@ -282,7 +283,7 @@ class ALS:
             # evaluate the test error
             nnz_row, nnz_col = test.nonzero()
             nnz_test = list(zip(nnz_row, nnz_col))
-            rmse = compute_error(test, user_features, item_features, nnz_test)
+            self.rmse = compute_error(test, user_features, item_features, nnz_test)
             print("test RMSE after running ALS: {v}.".format(v=rmse))
 
     def predict(self, user, movie):
