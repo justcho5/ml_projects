@@ -140,8 +140,8 @@ class MatrixFactor:
         print("RMSE on test data: {}.".format(rmse))
 
     def predict(self, user, movie):
-        item_info = item_features[:, int(movie)]
-        user_info = user_features[:, int(user)]
+        item_info = item_features[:, int(user)]
+        user_info = user_features[:, int(movie)]
 
         return user_info.T.dot(item_info)
 
@@ -258,8 +258,8 @@ class ALS:
         print("test RMSE after running ALS: {v}.".format(v=rmse))
 
     def predict(self, user, movie):
-        item_info = item_features[:, int(movie)]
-        user_info = user_features[:, int(user)]
+        item_info = item_features[:, int(user)]
+        user_info = user_features[:, int(movie)]
 
         return user_info.T.dot(item_info)
 
