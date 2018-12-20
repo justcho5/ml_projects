@@ -49,14 +49,14 @@ def with_default_param():
             # "KNNWithMeans": {},
             # "KNNWithZScore": {},
             # "KNNBasic": {},
-            # "SVDpp": {},
+            "SVDpp": {},
             # "NMF": {},
             # "CoClustering": {},
             "GlobalMean": {},
             "UserMean": {},
             "MovieMean": {}
         }
-        output_file_name = "all_blending_with_global_mean"
+        output_file_name = "blending_with_svdpp"
 
         start_time = time.time()
 
