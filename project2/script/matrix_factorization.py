@@ -154,7 +154,7 @@ class MatrixFactor:
             nz_test = list(zip(nz_row, nz_col))
             print("Get test RMSE")
             self.rmse = compute_error(test, user_features, item_features, nz_test)
-            print("RMSE on test data: {}.".format(rmse))
+            print("RMSE on test data: {}.".format(self.rmse))
 
     def predict(self, user, movie):
         item_info = self.item_features[:, int(user) - 1]
