@@ -25,7 +25,7 @@ import submission as s
 import time
 import sys
 
-FILE_NAME = '../data/data_surprise.csv'
+FILE_NAME = '../data/data_surprise_small.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
 def split_user_movie(pandas_data_frame):
@@ -86,7 +86,9 @@ def with_default_param():
 
         items = np.array_split(items_to_predict, 12)
         items = map(lambda x: (x, models, predictions, weights), items)
-        p = tqdmp(pool.imap(predict, items))
+
+        print("Start jobs")
+        p = tqdm(pool.imap(predict, items), len=12)
         new_predictions = [item for sublist in p for item in sublist]
 
         print("Create File")
@@ -100,8 +102,8 @@ def with_default_param():
 
 def predict(input):
     items_to_predict, models, predictions, weights = input
-
-    for each in tqdm(items_to_predict):
+    print("Predict for", len(items_to_predict))
+    for each in items_to_predict:
         user = each[1].user
         movie = each[1].movie
 
@@ -113,7 +115,7 @@ def predict(input):
     clipped_predictions = np.clip(predictions, 1, 5)
 
     new_predictions = []
-    for i, each in enumerate(tqdm(items_to_predict)):
+    for i, each in enumerate(items_to_predict):
         one = (each[1].user, each[1].movie, clipped_predictions[i])
         new_predictions.append(one)
 
