@@ -1,0 +1,5 @@
+Write result to file result/all_blending_with_global_mean.result
+Find best model
+Weights:  [('BaselineOnly', -0.11459258732200801), ('KNNBaseline', 0.8444392464285451), ('SVD', 0.2760866008924838), ('SlopeOne', -0.02540302523697435), ('GlobalMean', -0.010628244688135674), ('UserMean', 0.013283003130830136), ('MovieMean', 0.014610497074420702)]
+Best rmse:  0.9897476761381832
+result: 1.033
