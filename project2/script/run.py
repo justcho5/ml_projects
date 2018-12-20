@@ -81,7 +81,7 @@ def main():
         each_model.fit(trainset, None, model_to_param[each_model.name])
 
     weights = list(model_to_weight.values())
-    output_file_name = "one_submission_file"
+    output_file_name = "reproducable_submission"
     create_submission(models, output_file_name, weights)
 
     diff = (time.time() - start_time)
