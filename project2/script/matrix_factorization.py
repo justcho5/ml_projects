@@ -33,7 +33,10 @@ import scipy.sparse as sp
 import dataset as d
 import os
 from tqdm import tqdm
-
+'''
+This part of the source code is mostly from the exercise.
+It has been changed such that you can work with the surprise library model.
+'''
 
 def statistics(data):
     '''
@@ -47,7 +50,7 @@ def statistics(data):
 
 def to_matrix(testset, dimension):
     '''
-    :param testset: 
+    :param testset:
     :param dimension:
     :return:
     '''

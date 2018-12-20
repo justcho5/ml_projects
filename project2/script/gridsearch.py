@@ -2,8 +2,6 @@
 '''
 This file was used during gridsearch to find the best parameter.
 '''
-
-
 import surprise
 import numpy as np
 import pandas as pd
@@ -28,7 +26,6 @@ import dataset as d
 import models as m
 import time
 import sys
-
 
 def grid_search():
    data = d.to_surprise_read('../data/data_surprise.csv')
