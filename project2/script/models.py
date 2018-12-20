@@ -31,11 +31,28 @@ from surprise.model_selection import GridSearchCV
 
 from scipy.optimize import minimize
 
+import scipy.sparse as sp
 
 import dataset as d
 import os
 from tqdm import tqdm
 
+def statistics(data):
+    row = set([int(line[0]) for line in data])
+    col = set([int(line[1]) for line in data])
+    return min(row), max(row), min(col), max(col)
+
+def to_matrix(testset):
+    '''
+    form hw
+    '''
+    min_row, max_row, min_col, max_col = statistics(testset)
+
+    ratings = sp.lil_matrix((max_row, max_col))
+    for row, col, rating in testset:
+        ratings[int(row) - 1, int(col) - 1] = int(rating)
+
+    return ratings
 
 def init_MF(train, num_features):
     """init the parameter for matrix factorization."""
@@ -67,6 +84,10 @@ class MatrixFactor:
         self.name = "MatrixFactor"
 
     def fit(self, trainset, testset, param):
+        print("Building the matrix")
+
+        test = to_matrix(testset)
+        train = to_matrix(list(trainset.all_ratings()))
 
         """matrix factorization by SGD."""
         # define parameters
@@ -113,14 +134,130 @@ class MatrixFactor:
             errors.append(rmse)
 
         # evaluate the test error
+        self.user_features = user_features
+        self.item_features = item_features
         self.rmse = compute_error(test, user_features, item_features, nz_test)
         print("RMSE on test data: {}.".format(rmse))
 
     def predict(self, user, movie):
-        return self.global_mean
+        item_info = item_features[:, int(movie)]
+        user_info = user_features[:, int(user)]
+
+        return user_info.T.dot(item_info)
+
+def build_index_groups(train):
+    """build groups for nnz rows and cols."""
+    nz_row, nz_col = train.nonzero()
+    nz_train = list(zip(nz_row, nz_col))
+
+    grouped_nz_train_byrow = group_by(nz_train, index=0)
+    nz_row_colindices = [(g, np.array([v[1] for v in value]))
+                         for g, value in grouped_nz_train_byrow]
+
+    grouped_nz_train_bycol = group_by(nz_train, index=1)
+    nz_col_rowindices = [(g, np.array([v[0] for v in value]))
+                         for g, value in grouped_nz_train_bycol]
+    return nz_train, nz_row_colindices, nz_col_rowindices
+
+def update_user_feature(
+        train, item_features, lambda_user,
+        nnz_items_per_user, nz_user_itemindices):
+    """update user feature matrix."""
+    """the best lambda is assumed to be nnz_items_per_user[user] * lambda_user"""
+    num_user = nnz_items_per_user.shape[0]
+    num_feature = item_features.shape[0]
+    lambda_I = lambda_user * sp.eye(num_feature)
+    updated_user_features = np.zeros((num_feature, num_user))
+
+    for user, items in nz_user_itemindices:
+        # extract the columns corresponding to the prediction for given item
+        M = item_features[:, items]
+
+        # update column row of user features
+        V = M @ train[items, user]
+        A = M @ M.T + nnz_items_per_user[user] * lambda_I
+        X = np.linalg.solve(A, V)
+        updated_user_features[:, user] = np.copy(X.T)
+    return updated_user_features
 
 
+def update_item_feature(
+        train, user_features, lambda_item,
+        nnz_users_per_item, nz_item_userindices):
+    """update item feature matrix."""
+    """the best lambda is assumed to be nnz_items_per_item[item] * lambda_item"""
+    num_item = nnz_users_per_item.shape[0]
+    num_feature = user_features.shape[0]
+    lambda_I = lambda_item * sp.eye(num_feature)
+    updated_item_features = np.zeros((num_feature, num_item))
 
+    for item, users in nz_item_userindices:
+        # extract the columns corresponding to the prediction for given user
+        M = user_features[:, users]
+        V = M @ train[item, users].T
+        A = M @ M.T + nnz_users_per_item[item] * lambda_I
+        X = np.linalg.solve(A, V)
+        updated_item_features[:, item] = np.copy(X.T)
+    return updated_item_features
+
+class ALS:
+    def __init__(self):
+        self.name = "ALS"
+
+    def fit(self, trainset, testset, param):
+        print("Building the matrix")
+
+        train = to_matrix(list(trainset.all_ratings()))
+        test = to_matrix(testset)
+
+        """Alternating Least Squares (ALS) algorithm."""
+        # define parameters
+        num_features = 20  # K in the lecture notes
+        lambda_user = 0.1
+        lambda_item = 0.7
+        stop_criterion = 1e-4
+        change = 1
+        error_list = [0, 0]
+
+        # set seed
+        np.random.seed(988)
+
+        # init ALS
+        user_features, item_features = init_MF(train, num_features)
+
+        # get the number of non-zero ratings for each user and item
+        nnz_items_per_user, nnz_users_per_item = train.getnnz(axis=0), train.getnnz(axis=1)
+
+        # group the indices by row or column index
+        nz_train, nz_item_userindices, nz_user_itemindices = build_index_groups(train)
+
+        # run ALS
+        print("start the ALS algorithm...")
+        while change > stop_criterion:
+            # update user feature & item feature
+            user_features = update_user_feature(
+                train, item_features, lambda_user,
+                nnz_items_per_user, nz_user_itemindices)
+            item_features = update_item_feature(
+                train, user_features, lambda_item,
+                nnz_users_per_item, nz_item_userindices)
+
+            error = compute_error(train, user_features, item_features, nz_train)
+            print("RMSE on training set: {}.".format(error))
+            error_list.append(error)
+            change = np.fabs(error_list[-1] - error_list[-2])
+
+        # evaluate the test error
+        nnz_row, nnz_col = test.nonzero()
+        nnz_test = list(zip(nnz_row, nnz_col))
+        rmse = compute_error(test, user_features, item_features, nnz_test)
+        print("test RMSE after running ALS: {v}.".format(v=rmse))
+
+    def predict(self, user, movie):
+        item_info = item_features[:, int(movie)]
+        user_info = user_features[:, int(user)]
+
+        return user_info.T.dot(item_info)
 
 class GlobalMean:
     ''''
@@ -327,6 +464,9 @@ def call_algo(i):
 
     if "MatrixFactor" in model_name:
         models.append(MatrixFactor())
+
+    if "ALS" in model_name:
+        models.append(ALS())
 
     print("Fit each model")
     progress = tqdm(models)

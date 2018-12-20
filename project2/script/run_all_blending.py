@@ -39,30 +39,30 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "BaselineOnly": {},
-            "SVD": { 'n_factors': 20 },
-            "SlopeOne": {},
-            "KNNBaseline":   {
-                'k': 100,
-                'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
-            },
-            "GlobalMean": {},
-            "UserMean": {},
-            "MovieMean": {},
-            #"MatrixFactor": {},
-             "KNNWithMeans": {},
-             "KNNWithZScore": {},
-             "KNNBasic": {},
-            "SVDpp": {},
-             "NMF": {},
-             "CoClustering": {},
+            #BaselineOnly": {},
+            #SVD": { 'n_factors': 20 },
+            #SlopeOne": {},
+            #KNNBaseline":   {
+            #   'k': 100,
+            #   'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
+            #,
+            #GlobalMean": {},
+            #UserMean": {},
+            #"MovieMean": {},
+            "MatrixFactor": {},
+             #"KNNWithMeans": {},
+             #"KNNWithZScore": {},
+             #"KNNBasic": {},
+            #"SVDpp": {},
+            #"NMF": {},
+            #"CoClustering": {},
         }
         output_file_name = "blending_with_all"
 
         start_time = time.time()
 
         all = m.cross_validate(pool=pool,
-                               splits=12,
+                               splits=4,
                                model_to_param=model_to_param,
                                output_file_name=output_file_name,
                                data_file=FILE_NAME,
