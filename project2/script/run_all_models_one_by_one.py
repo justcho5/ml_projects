@@ -31,16 +31,16 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "BaselineOnly": {},
-            "KNNBasic": {},
-            "KNNWithMeans": {},
-            "KNNWithZScore": {},
-            "KNNBaseline": {},
-            "SVD": {},
-            "SVDpp": {},
-            "NMF": {},
-            "SlopeOne": {},
-            "CoClustering": {},
+            "UserMean": {},
+            #"KNNBasic": {},
+            #"KNNWithMeans": {},
+            #"KNNWithZScore": {},
+            #"KNNBaseline": {},
+            #"SVD": {},
+            #"SVDpp": {},
+            #"NMF": {},
+            #"SlopeOne": {},
+            #"CoClustering": {},
         }
 
         for model in model_to_param:
@@ -50,10 +50,15 @@ def with_default_param():
             single_model_parameter = {
                 model : model_to_param[model]
             }
-            result = m.cross_validate( pool=pool,
-                                       model_to_param=single_model_parameter,
-                                       output_file_name=model,
-                                       data_file=FILE_NAME)
+            all = m.cross_validate(pool=pool,
+                                   splits=2,
+                                   model_to_param=model_to_param,
+                                   output_file_name=None,
+                                   data_file=FILE_NAME,
+                                   with_blending=False)
+
+            rmse = list(map(lambda x: x[0][0].rmse, all))
+            print(model, rmse)
 
             diff =  (time.time() - start_time)
             print("Time taken: {} {}s".format(model, diff))
