@@ -222,7 +222,7 @@ class ALS:
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1
         lambda_item = 0.7
-        stop_criterion = 1e-3
+        stop_criterion = 1e-2
         change = 1
         error_list = [0, 0]
 
