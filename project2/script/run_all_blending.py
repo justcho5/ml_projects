@@ -39,21 +39,21 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "BaselineOnly": {},
-            "SVD": { 'n_factors': 20 },
-            "SlopeOne": {},
-            "KNNBaseline":   {
-                 'k': 100,
-                 'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
-             },
+            #BaselineOnly": {},
+            #SVD": { 'n_factors': 20 },
+            #SlopeOne": {},
+            #KNNBaseline":   {
+            #    'k': 100,
+            #    'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
+            #},
             # "KNNWithMeans": {},
             # "KNNWithZScore": {},
             # "KNNBasic": {},
             # "SVDpp": {},
             # "NMF": {},
             # "CoClustering": {},
-            "GlobalMean": {},
-            #"UserMean": {},
+            #"GlobalMean": {},
+            "UserMean": {},
             #"movie_mean": {}
         }
         output_file_name = "all_blending_with_global_mean"
@@ -72,7 +72,7 @@ def with_default_param():
 
         models = best[0]
         weights = best[1].x
-        print("Weights: ", weights)
+        print("Weights: ", list(zip(map(lambda x: x.name, models), weights)))
 
         print("Best rmse: ", best[1].fun)
 
@@ -88,7 +88,7 @@ def with_default_param():
         items = map(lambda x: (x, models, predictions, weights), items)
 
         print("Start jobs")
-        p = tqdm(pool.imap(predict, items), len=12)
+        p = tqdm(pool.imap(predict, items), total=12)
         new_predictions = [item for sublist in p for item in sublist]
 
         print("Create File")

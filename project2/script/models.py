@@ -35,13 +35,17 @@ class GlobalMean:
 
     def fit(self, trainset, testset, param):
 
-        only_ratings_train = list(map(lambda x: x[2], trainset))
-        global_mean = np.mean(only_ratings)
+        # get all ratings as list
+        only_ratings_train = list(map(lambda x: x[2], trainset.all_ratings()))
 
-        test_set = list(test.all_ratings())
-        only_ratings_test = list(map(lambda x: x[2], test_set))
+        # calculate mean of all ratings
+        global_mean = np.mean(only_ratings_train)
 
-        predictions = np.repeat(global_mean, len(test_set))
+        # get all test ratings
+        only_ratings_test = list(map(lambda x: x[2], testset))
+
+        # our predictions is just the global mean
+        predictions = np.repeat(global_mean, len(testset))
 
         self.rmse = np.sqrt(mean_squared_error(only_ratings_test, predictions))
         self.global_mean = global_mean
@@ -55,19 +59,28 @@ class UserMean:
 
     def fit(self, trainset, testset, param):
 
-        only_ratings_train = list(map(lambda x: x[2], trainset))
-        global_mean = np.mean(only_ratings)
+        df_train = pd.DataFrame.from_records(trainset.all_ratings(), columns=['user', 'movie', 'rating'])
 
-        test_set = list(test.all_ratings())
-        only_ratings_test = list(map(lambda x: x[2], test_set))
+        # this is strange, surprise seems to index user by 0
+        df_train.user = df_train.user + 1
 
-        predictions = np.repeat(global_mean, len(test_set))
+        # get mean per user
+        self.df_user_to_rating = df_train.groupby('user')['rating'].mean()
 
-        self.rmse = np.sqrt(mean_squared_error(only_ratings_test, predictions))
+        # get mean rating per user
+        predictions = []
+        true_rating = []
+        for each in testset:
+            user = each[0]
+            rating = each[2]
+            predictions.append(self.df_user_to_rating.loc[int(user)])
+            true_rating.append(rating)
+
+        self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
         self.global_mean = global_mean
 
     def predict(self, user, movie):
-        return self.global_mean
+        return self.df_user_to_rating.loc[int(user)]
 
 class SurpriseBasedModel:
     def __init__(self, model, name):
@@ -110,7 +123,7 @@ def get_predictions(models, data_to_predict):
     for each_data in tqdm(data_to_predict):
         predictions = []
         for each_model in models:
-            p = each_model.algo.predict(each_data[0], each_data[1]).est
+            p = each_model.predict(each_data[0], each_data[1])
             predictions.append(p)
         result.append(predictions)
     return result
@@ -169,8 +182,11 @@ def call_algo(i):
     if "CoClustering" in model_name:
         models.append(SurpriseBasedModel(CoClustering, "CoClustering"))
 
-    if "global_mean" in model_name:
+    if "GlobalMean" in model_name:
         models.append(GlobalMean())
+
+    if "UserMean" in model_name:
+        models.append(UserMean())
 
     print("Fit each model")
     progress = tqdm(models)
