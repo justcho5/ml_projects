@@ -37,18 +37,18 @@ def split_user_movie(pandas_data_frame):
 def with_default_param():
     print("Start script");
 
-    with Pool(1) as pool:
+    with Pool(12) as pool:
         model_to_param = {
             "BaselineOnly": {},
-            #SVD": { 'n_factors': 20 },
-            #SlopeOne": {},
+            "SVD": { 'n_factors': 20 },
+            "SlopeOne": {},
             #KNNBaseline":   {
             #   'k': 100,
             #   'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
             #,
-            #GlobalMean": {},
-            #UserMean": {},
-            #"MovieMean": {},
+            "GlobalMean": {},
+            "UserMean": {},
+            "MovieMean": {},
             "MatrixFactor": {},
             "ALS": {},
              #"KNNWithMeans": {},

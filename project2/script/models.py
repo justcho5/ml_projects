@@ -70,8 +70,6 @@ def compute_error(data, user_features, item_features, nz):
     """compute the loss (MSE) of the prediction of nonzero elements."""
     mse = 0
 
-    print(user_features.shape, item_features.shape)
-
     for row, col in nz:
         item_info = item_features[:, row]
         user_info = user_features[:, col]
