@@ -42,17 +42,11 @@ def main():
 
     model_to_param = {
         "BaselineOnly": {},
-        "SVD": {'n_factors': 20},
+        "SVD": ,
         "SlopeOne": {},
         "KNNBaseline": {
             'k': 150,
-            'sim_options': {
-                'name': 'pearson_baseline',
-                'user_based': 'True'
-            }
         },
-        "GlobalMean": {},
-        "UserMean": {},
         "MovieMean": {},
         "MatrixFactor": {},
         "ALS": {},

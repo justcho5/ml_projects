@@ -27,8 +27,9 @@ import sys
 FILE_NAME = '../data/data_surprise.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
-#FILE_NAME = '../data/data_surprise_small.csv'
-#SAMPLE_SUBMISSION = '../data/sample_submission_small.csv'
+
+# FILE_NAME = '../data/data_surprise_small.csv'
+# SAMPLE_SUBMISSION = '../data/sample_submission_small.csv'
 
 def split_user_movie(pandas_data_frame):
     user_movie = pandas_data_frame.Id.str.extract(r'r(?P<user>\d+)_c(?P<movie>\d+)')
@@ -36,31 +37,22 @@ def split_user_movie(pandas_data_frame):
     pandas_data_frame['movie'] = user_movie.movie
     return pandas_data_frame[['user', 'movie', 'Prediction']]
 
+
 def with_default_param():
     print("Start script");
 
     with Pool(12) as pool:
         model_to_param = {
-            #"BaselineOnly": {},
-            #"SVD": { 'n_factors': 20 },
-            #"SlopeOne": {},
-            #"KNNBaseline":   {
-               #'k': 150,
-               #'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
-            #},
-            #"GlobalMean": {},
-            #"UserMean": {},
-            #"MovieMean": {},
-            #"MatrixFactor": {},
-            #"ALS": {},
-             #"KNNWithMeans": {},
-             #"KNNWithZScore": {},
-             #"KNNBasic": {},
-            #"NMF": {},
-            #"CoClustering": {},
+            "BaselineOnly": {},
+            "SVD": {'n_factors': 20},
+            "SlopeOne": {},
+            "KNNBaseline": {
+                'k': 150,
+            },
+            "KNNBasic": {},
         }
 
-        output_file_name = "blending_14_33_knn"
+        output_file_name = "model_selection_blending"
 
         start_time = time.time()
 
@@ -78,7 +70,7 @@ def with_default_param():
         full_data = d.to_surprise_read(FILE_NAME)
         trainset = full_data.build_full_trainset()
 
-        #for each in models:
+        # for each in models:
         #    each.fit(trainset, None, model_to_param[each.name])
 
         create_submission(best, models, output_file_name, pool, weights)
