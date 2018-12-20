@@ -46,17 +46,18 @@ def with_default_param():
                 'k': 100,
                 'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
             },
-            # "KNNWithMeans": {},
-            # "KNNWithZScore": {},
-            # "KNNBasic": {},
-            "SVDpp": {},
-            # "NMF": {},
-            # "CoClustering": {},
             "GlobalMean": {},
             "UserMean": {},
             "MovieMean": {}
+            #"MatrixFactor": {},
+             "KNNWithMeans": {},
+             "KNNWithZScore": {},
+             "KNNBasic": {},
+            "SVDpp": {},
+             "NMF": {},
+             "CoClustering": {},
         }
-        output_file_name = "blending_with_svdpp"
+        output_file_name = "blending_with_all"
 
         start_time = time.time()
 
