@@ -137,6 +137,7 @@ class MatrixFactor:
 
         nz_row, nz_col = test.nonzero()
         nz_test = list(zip(nz_row, nz_col))
+        print(("Get test RMSE"))
         self.rmse = compute_error(test, user_features, item_features, nz_test)
         print("RMSE on test data: {}.".format(rmse))
 
