@@ -56,7 +56,7 @@ def with_default_param():
             #"UserMean": {},
             #"movie_mean": {}
         }
-        output_file_name = "all_blending_optimal"
+        output_file_name = "all_blending_with_global_mean"
 
         start_time = time.time()
 
