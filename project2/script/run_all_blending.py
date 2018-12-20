@@ -28,6 +28,9 @@ import sys
 FILE_NAME = '../data/data_surprise.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
+FILE_NAME = '../data/data_surprise_small.csv'
+SAMPLE_SUBMISSION = '../data/sample_submission_small.csv'
+
 def split_user_movie(pandas_data_frame):
     user_movie = pandas_data_frame.Id.str.extract(r'r(?P<user>\d+)_c(?P<movie>\d+)')
     pandas_data_frame['user'] = user_movie.user
