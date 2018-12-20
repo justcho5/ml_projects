@@ -50,6 +50,7 @@ def with_default_param():
                 'k': 150,
             },
             "KNNBasic": {},
+            "NMF": {},
         }
 
         output_file_name = "model_selection_blending"
@@ -66,12 +67,6 @@ def with_default_param():
         best = min(all, key=lambda each: each[1].fun)
         models = best[0]
         weights = best[1].x
-
-        full_data = d.to_surprise_read(FILE_NAME)
-        trainset = full_data.build_full_trainset()
-
-        # for each in models:
-        #    each.fit(trainset, None, model_to_param[each.name])
 
         create_submission(best, models, output_file_name, pool, weights)
 
