@@ -43,13 +43,8 @@ def statistics(data):
     col = set([int(line[1]) for line in data])
     return min(row), max(row), min(col), max(col)
 
-def to_matrix(testset):
-    '''
-    form hw
-    '''
-    min_row, max_row, min_col, max_col = statistics(testset)
-
-    ratings = sp.lil_matrix((max_row, max_col))
+def to_matrix(testset, dimension):
+    ratings = sp.lil_matrix((dimension))
     for row, col, rating in testset:
         ratings[int(row) - 1, int(col) - 1] = int(rating)
 
@@ -74,7 +69,9 @@ def init_MF(train, num_features):
 def compute_error(data, user_features, item_features, nz):
     """compute the loss (MSE) of the prediction of nonzero elements."""
     mse = 0
-    pred_matrix = user_features.T @ item_features
+
+    print(user_features.shape, item_features.shape)
+
     for row, col in nz:
         item_info = item_features[:, row]
         user_info = user_features[:, col]
@@ -87,9 +84,16 @@ class MatrixFactor:
         self.name = "MatrixFactor"
 
     def fit(self, trainset, testset, param):
-        print("Building the matrix")
-        test = to_matrix(testset)
-        train = to_matrix(list(trainset.all_ratings()))
+        if testset is None:
+            min_row, max_row, min_col, max_col = statistics(list(trainset.all_ratings()))
+            dim = (max_row, max_col)
+        else:
+            min_row, max_row, min_col, max_col = statistics(testset)
+            min_row2, max_row2, min_col2, max_col2 = statistics(list(trainset.all_ratings()))
+            dim = (max(max_row, max_row2), max(max_col, max_col2))
+            test = to_matrix(testset, dim)
+
+        train = to_matrix(list(trainset.all_ratings()), dim)
 
         """matrix factorization by SGD."""
         # define parameters
@@ -132,20 +136,22 @@ class MatrixFactor:
             errors.append(rmse)
 
         # evaluate the test error
-        self.user_features = user_features
-        self.item_features = item_features
+        self.user_features = np.nan_to_num(user_features)
+        self.item_features = np.nan_to_num(item_features)
 
-        nz_row, nz_col = test.nonzero()
-        nz_test = list(zip(nz_row, nz_col))
-        print(("Get test RMSE"))
-        self.rmse = compute_error(test, user_features, item_features, nz_test)
-        print("RMSE on test data: {}.".format(rmse))
+        if testset is not None:
+            nz_row, nz_col = test.nonzero()
+            nz_test = list(zip(nz_row, nz_col))
+            print("Get test RMSE")
+            self.rmse = compute_error(test, user_features, item_features, nz_test)
+            print("RMSE on test data: {}.".format(rmse))
 
     def predict(self, user, movie):
-        item_info = item_features[:, int(user)]
-        user_info = user_features[:, int(movie)]
+        item_info = self.item_features[:, int(user) - 1]
+        user_info = self.user_features[:, int(movie) - 1]
 
-        return user_info.T.dot(item_info)
+        result = user_info.T.dot(item_info)
+        return result
 
 def group_by(data, index):
     """group list of list by a specific index."""
@@ -216,8 +222,12 @@ class ALS:
     def fit(self, trainset, testset, param):
         print("Building the matrix")
 
-        train = to_matrix(list(trainset.all_ratings()))
-        test = to_matrix(testset)
+        min_row, max_row, min_col, max_col = statistics(testset)
+        min_row2, max_row2, min_col2, max_col2 = statistics(list(trainset.all_ratings()))
+
+        dim = (max(max_row, max_row2), max(max_col, max_col2))
+        test = to_matrix(testset, dim)
+        train = to_matrix(list(trainset.all_ratings()), dim)
 
         """Alternating Least Squares (ALS) algorithm."""
         # define parameters
@@ -253,6 +263,9 @@ class ALS:
             error_list.append(error)
             change = np.fabs(error_list[-1] - error_list[-2])
 
+        self.user_features = user_features
+        self.item_features = item_features
+
         # evaluate the test error
         nnz_row, nnz_col = test.nonzero()
         nnz_test = list(zip(nnz_row, nnz_col))
@@ -260,8 +273,8 @@ class ALS:
         print("test RMSE after running ALS: {v}.".format(v=rmse))
 
     def predict(self, user, movie):
-        item_info = item_features[:, int(user)]
-        user_info = user_features[:, int(movie)]
+        item_info = self.item_features[:, int(user) - 1]
+        user_info = self.user_features[:, int(movie) - 1]
 
         return user_info.T.dot(item_info)
 
@@ -372,10 +385,12 @@ class SurpriseBasedModel:
 
         # fit the model and predict for test result
         algo.fit(trainset)
-        predictions = algo.test(testset)
 
-        # Compute and print Root Mean Squared Error
-        self.rmse = accuracy.rmse(predictions, verbose=False)
+        if testset is not None:
+            predictions = algo.test(testset)
+
+            # Compute and print Root Mean Squared Error
+            self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
 
     def predict(self, user, movie):
@@ -425,7 +440,7 @@ def blending_result(models, testset):
 
 
 def call_algo(i):
-    trainset, testset, model_name, with_blending = i
+    trainset, testset, model_name, with_blending, data = i
 
     models = []
 
@@ -508,7 +523,7 @@ def cross_validate(pool,
     print("running CV")
 
     ## run the code sequentially or parallely
-    argument_list = list(map(lambda x: (x[0], x[1], model_to_param, with_blending), splits))
+    argument_list = list(map(lambda x: (x[0], x[1], model_to_param, with_blending, data), splits))
 
     for result in tqdm(pool.imap(call_algo, argument_list), total=len(argument_list), desc="CV"):
         results.append(result)

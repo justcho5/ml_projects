@@ -25,7 +25,7 @@ import submission as s
 import time
 import sys
 
-FILE_NAME = '../data/lower_surprise.csv'
+FILE_NAME = '../data/data_surprise_small.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
 def split_user_movie(pandas_data_frame):
@@ -37,9 +37,9 @@ def split_user_movie(pandas_data_frame):
 def with_default_param():
     print("Start script");
 
-    with Pool(12) as pool:
+    with Pool(1) as pool:
         model_to_param = {
-            #BaselineOnly": {},
+            "BaselineOnly": {},
             #SVD": { 'n_factors': 20 },
             #SlopeOne": {},
             #KNNBaseline":   {
@@ -50,7 +50,7 @@ def with_default_param():
             #UserMean": {},
             #"MovieMean": {},
             "MatrixFactor": {},
-            #"ALS": {},
+            "ALS": {},
              #"KNNWithMeans": {},
              #"KNNWithZScore": {},
              #"KNNBasic": {},
@@ -69,37 +69,41 @@ def with_default_param():
                                data_file=FILE_NAME,
                                with_blending=True)
 
-        print("Find best model")
         best = min(all, key=lambda each: each[1].fun)
-
         models = best[0]
         weights = best[1].x
-        print("Weights: ", list(zip(map(lambda x: x.name, models), weights)))
 
-        print("Best rmse: ", best[1].fun)
+        full_data = d.to_surprise_read(FILE_NAME)
+        trainset = full_data.build_full_trainset()
 
-        print("Read submission file")
-        df_submission = pd.read_csv(SAMPLE_SUBMISSION)
-        df_submission = split_user_movie(df_submission)
+        #for each in models:
+        #    each.fit(trainset, None, model_to_param[each.name])
 
-        print("Do predictions")
-        predictions = []
-        items_to_predict = list(df_submission.iterrows())
-
-        items = np.array_split(items_to_predict, 12)
-        items = map(lambda x: (x, models, predictions, weights), items)
-
-        print("Start jobs")
-        p = tqdm(pool.imap(predict, items), total=12)
-        new_predictions = [item for sublist in p for item in sublist]
-
-        print("Create File")
-        s.write_predictions_to_file(new_predictions, output_file_name + "_prediction.csv")
+        create_submission(best, models, output_file_name, pool, weights)
 
         diff = (time.time() - start_time)
         print("Time taken: {}s".format(diff))
 
         print("Script ended")
+
+
+def create_submission(best, models, output_file_name, pool, weights):
+    print("Weights: ", list(zip(map(lambda x: x.name, models), weights)))
+    print("Best rmse: ", best[1].fun)
+    print("Read submission file")
+    df_submission = pd.read_csv(SAMPLE_SUBMISSION)
+    df_submission = split_user_movie(df_submission)
+    print("Do predictions")
+    predictions = []
+    items_to_predict = list(df_submission.iterrows())
+    print("Split data")
+    items = np.array_split(items_to_predict, 12)
+    items = map(lambda x: (x, models, predictions, weights), items)
+    print("Start jobs")
+    p = tqdm(pool.imap(predict, items), total=12)
+    new_predictions = [item for sublist in p for item in sublist]
+    print("Create File")
+    s.write_predictions_to_file(new_predictions, output_file_name + "_prediction.csv")
 
 
 def predict(input):
