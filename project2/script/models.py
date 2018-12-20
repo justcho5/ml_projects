@@ -237,8 +237,6 @@ def model_name_to_model(model_name):
         models.append(SurpriseBasedModel(KNNBaseline, "KNNBaseline"))
     if "SVD" in model_name:
         models.append(SurpriseBasedModel(SVD, "SVD"))
-    if "SVDpp" in model_name:
-        models.append(SurpriseBasedModel(SVDpp, "SVDpp"))
     if "NMF" in model_name:
         models.append(SurpriseBasedModel(NMF, "NMF"))
     if "SlopeOne" in model_name:

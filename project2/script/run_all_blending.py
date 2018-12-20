@@ -8,7 +8,6 @@ from surprise import BaselineOnly
 from surprise import Dataset
 from surprise import Reader
 from surprise import SVD
-from surprise import SVDpp
 from surprise import KNNWithMeans
 from surprise import SlopeOne
 from tqdm import tqdm_notebook, tqdm
@@ -54,8 +53,6 @@ def with_default_param():
             #"MovieMean": {},
             #"MatrixFactor": {},
             #"ALS": {},
-            #"SVDpp": {},
-
              #"KNNWithMeans": {},
              #"KNNWithZScore": {},
              #"KNNBasic": {},

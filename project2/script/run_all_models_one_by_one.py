@@ -31,8 +31,8 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "SVD": {},
-            "SVDpp": {},
+            "NMF": {},
+            "KNNBasic": {},
         }
 
         for model in model_to_param:
