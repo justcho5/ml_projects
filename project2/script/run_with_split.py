@@ -46,19 +46,21 @@ def with_default_param():
         start_time = time.time()
         lower_result = m.cross_validate(pool=pool,
                                         model_to_param=model_to_param,
-                                        output_file_name="lower",
+                                        output_file_name=None,
                                         data_file=FILE_LOWER,
-                                        with_blending=True)
+                                        with_blending=False)
 
         upper_result = m.cross_validate(pool=pool,
                                         model_to_param=model_to_param,
-                                        output_file_name="upper",
+                                        output_file_name=None,
                                         data_file=FILE_LOWER,
-                                        with_blending=True)
+                                        with_blending=False)
 
-        best = min(lower_result, key=lambda each: each[1].fun)
-        models = best[0]
-        weights = best[1].x
+        rmse = list(map(lambda x: x[0][0].rmse, lower_result))
+        print("Lower:", rmse)
+
+        rmse = list(map(lambda x: x[0][0].rmse, upper_result))
+        print("Upper:", rmse)
 
 
         print(lower_result)
