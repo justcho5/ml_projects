@@ -35,19 +35,21 @@ def split_user_movie(pandas_data_frame):
     pandas_data_frame['movie'] = user_movie.movie
     return pandas_data_frame[['user', 'movie', 'Prediction']]
 
+
 def main():
     print("Start script");
+    start_time = time.time()
 
     model_to_param = {
         "BaselineOnly": {},
         "SVD": {'n_factors': 20},
         "SlopeOne": {},
         "KNNBaseline": {
-           #'k': 150,
-           'sim_options': {
-               'name': 'pearson_baseline',
-               'user_based': 'True'
-           }
+            'k': 150,
+            'sim_options': {
+                'name': 'pearson_baseline',
+                'user_based': 'True'
+            }
         },
         "GlobalMean": {},
         "UserMean": {},
@@ -62,7 +64,7 @@ def main():
         "SlopeOne": -0.04232111,
         "KNNBaseline": 0.404621,
         "GlobalMean": 0.04437225,
-        "UserMean":  0.07933614,
+        "UserMean": 0.07933614,
         "MovieMean": -0.06444559,
         "MatrixFactor": 0.66204053,
         "ALS": 0.16096753
@@ -91,7 +93,6 @@ def main():
 
 
 def create_submission(models, output_file_name, weights):
-
     print("Read submission file")
     df_submission = pd.read_csv(SAMPLE_SUBMISSION)
     df_submission = split_user_movie(df_submission)
@@ -111,6 +112,7 @@ def create_submission(models, output_file_name, weights):
 
         print("Create File")
         s.write_predictions_to_file(new_predictions, output_file_name + "_prediction.csv")
+
 
 def predict(input):
     items_to_predict, models, weights = input
@@ -134,6 +136,7 @@ def predict(input):
         new_predictions.append(one)
 
     return new_predictions
+
 
 if __name__ == "__main__":
     main()

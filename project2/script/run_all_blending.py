@@ -54,23 +54,23 @@ def with_default_param():
             "MovieMean": {},
             "MatrixFactor": {},
             "ALS": {},
+            "SVDpp": {},
 
              #"KNNWithMeans": {},
              #"KNNWithZScore": {},
              #"KNNBasic": {},
-            #"SVDpp": {},
             #"NMF": {},
             #"CoClustering": {},
         }
 
-        output_file_name = "blending_12_38_knn"
+        output_file_name = "blending_14_33_knn"
 
         start_time = time.time()
 
         all = m.cross_validate(pool=pool,
                                splits=12,
                                model_to_param=model_to_param,
-                               output_file_name=output_file_name,
+                               None,
                                data_file=FILE_NAME,
                                with_blending=True)
 

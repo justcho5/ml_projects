@@ -84,23 +84,24 @@ class MatrixFactor:
     def fit(self, trainset, testset, param):
         if testset is None:
             min_row, max_row, min_col, max_col = statistics(list(trainset.all_ratings()))
-            dim = (max_row, max_col)
+            dim = (max_row + 1, max_col + 1)
         else:
             min_row, max_row, min_col, max_col = statistics(testset)
             min_row2, max_row2, min_col2, max_col2 = statistics(list(trainset.all_ratings()))
-            dim = (max(max_row, max_row2), max(max_col, max_col2))
+            dim = (max(max_row, max_row2) + 1, max(max_col, max_col2) + 1)
             test = to_matrix(testset, dim)
 
+        print("Dimension:", dim)
         train = to_matrix(list(trainset.all_ratings()), dim)
 
         """matrix factorization by SGD."""
         # define parameters
-        gamma = 0.01
+        gamma = 0.025
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1
-        lambda_item = 0.7
+        lambda_item = 0.016
         num_epochs = 10  # number of full passes through the train set
-        #num_epochs = 3  # number of full passes through the train set
+        #num_epochs = 1  # number of full passes through the train set
         errors = [0]
 
         # init matrix
@@ -220,18 +221,22 @@ class ALS:
     def fit(self, trainset, testset, param):
         print("Building the matrix")
 
-        min_row, max_row, min_col, max_col = statistics(testset)
-        min_row2, max_row2, min_col2, max_col2 = statistics(list(trainset.all_ratings()))
+        if testset is None:
+            min_row, max_row, min_col, max_col = statistics(list(trainset.all_ratings()))
+            dim = (max_row + 1, max_col + 1)
+        else:
+            min_row, max_row, min_col, max_col = statistics(testset)
+            min_row2, max_row2, min_col2, max_col2 = statistics(list(trainset.all_ratings()))
+            dim = (max(max_row, max_row2) + 1, max(max_col, max_col2) + 1)
+            test = to_matrix(testset, dim)
 
-        dim = (max(max_row, max_row2), max(max_col, max_col2))
-        test = to_matrix(testset, dim)
         train = to_matrix(list(trainset.all_ratings()), dim)
 
         """Alternating Least Squares (ALS) algorithm."""
         # define parameters
         num_features = 20  # K in the lecture notes
-        lambda_user = 0.1
-        lambda_item = 0.7
+        lambda_user = 0.2
+        lambda_item = 0.9
         #stop_criterion = 1e-2
         stop_criterion = 1e-3
         change = 1
@@ -265,11 +270,12 @@ class ALS:
         self.user_features = user_features
         self.item_features = item_features
 
-        # evaluate the test error
-        nnz_row, nnz_col = test.nonzero()
-        nnz_test = list(zip(nnz_row, nnz_col))
-        rmse = compute_error(test, user_features, item_features, nnz_test)
-        print("test RMSE after running ALS: {v}.".format(v=rmse))
+        if testset is not None:
+            # evaluate the test error
+            nnz_row, nnz_col = test.nonzero()
+            nnz_test = list(zip(nnz_row, nnz_col))
+            rmse = compute_error(test, user_features, item_features, nnz_test)
+            print("test RMSE after running ALS: {v}.".format(v=rmse))
 
     def predict(self, user, movie):
         item_info = self.item_features[:, int(user) - 1]
@@ -524,8 +530,9 @@ def cross_validate(pool,
     if not os.path.exists("result"):
         os.makedirs("result")
 
-    file_to_write_to = "result/{}.result".format(output_file_name)
-    print("Write result to file", file_to_write_to)
-    pickle.dump(results, open(file_to_write_to, "wb"))
+    if output_file_name is not None:
+        file_to_write_to = "result/{}.result".format(output_file_name)
+        print("Write result to file", file_to_write_to)
+        pickle.dump(results, open(file_to_write_to, "wb"))
     return results
 
