@@ -1,18 +1,57 @@
-# Project Recommender System
+# Machine Learning Projects
 
-For this choice of project task, you are supposed to predict good recommendations, e.g. of movies to users. We have acquired ratings of 10000 users for 1000 different items (think of movies). All ratings are integer values between 1 and 5 stars. No additional information is available on the movies or users.
+## Project 2: Project Recommender System
 
-### Evaluation Metric
-Your collaborative filtering algorithm is evaluated according to the prediction error, measured by root-mean-squared error (RMSE).
+### Folder structure
 
-### Submission system environment setup:
+```
+project2/                              # Contains all project files
+├── data/                              # should contains the trainig and test file ( eg. test.csv and train.csv )
+└── plots/                             # Plot output
+└── script/
+    ├── implementation.py
+    ├── helpers.py
+    └── run.py
+    └── Plot.ipynb
+```
 
-1. The dataset is available from the Kaggle page, as linked in the PDF project description
 
-2. All information of the task and some baselines are provided in Exercise 10:
+**run.py**
 
- [https://github.com/epfml/ML_course/tree/master/labs/ex10]
+Main file which contains the code for training and prediction.
+
+**Plot.ipynb**
+
+Jupyter file, used to generate the plots for the report.
+
+**helpers.py**
+
+Provided helper file.
 
 
-## IDEAS
-- split data into two sets and train them
+### Requirements
+
+The python code has been tested with the following versions:
+
+```
+Python: 3.6.2
+Numpy: 1.13.1
+Pandas: xx
+Surprise: xx
+```
+
+In order to generate the prediction file simply run the run.py script:
+
+The test.csv and train.csv must be provided in project1/data/
+
+    python run.py
+
+This will create the output file in *project1/data/output.csv*
+
+### Authors
+Cho Hyun Jii
+Poopalasingam Kirusanth
+Rodriguez Natali
+
+
+

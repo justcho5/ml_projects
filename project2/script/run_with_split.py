@@ -24,7 +24,9 @@ import models as m
 import time
 import sys
 
-FILE_NAME = '../data/data_surprise.csv'
+FILE_LOWER = '../data/lower_surprise.csv'
+FILE_UPPER = '../data/upper_surprise.csv'
+
 
 def with_default_param():
     print("Start script");
@@ -41,27 +43,28 @@ def with_default_param():
             "NMF": {},
         }
 
-        for model in model_to_param:
-            print("Start: {}".format(model))
-            start_time = time.time()
+        start_time = time.time()
+        lower_result = m.cross_validate(pool=pool,
+                                        model_to_param=model_to_param,
+                                        output_file_name="lower",
+                                        data_file=FILE_LOWER,
+                                        with_blending=True)
 
-            single_model_parameter = {
-                model : model_to_param[model]
-            }
-            all = m.cross_validate(pool=pool,
-                                   splits=12,
-                                   model_to_param=model_to_param,
-                                   output_file_name=None,
-                                   data_file=FILE_NAME,
-                                   with_blending=False)
+        upper_result = m.cross_validate(pool=pool,
+                                        model_to_param=model_to_param,
+                                        output_file_name="upper",
+                                        data_file=FILE_LOWER,
+                                        with_blending=True)
 
-            rmse = list(map(lambda x: x[0][0].rmse, all))
-            print(model, rmse)
+        best = min(lower_result, key=lambda each: each[1].fun)
+        models = best[0]
+        weights = best[1].x
 
-            diff =  (time.time() - start_time)
-            print("Time taken: {} {}s".format(model, diff))
 
-    print("Script ended")
+        print(lower_result)
+        diff = (time.time() - start_time)
+        print("Time taken: {}s".format(diff))
+
 
 if __name__ == "__main__":
     with_default_param()

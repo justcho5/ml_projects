@@ -36,12 +36,21 @@ from tqdm import tqdm
 
 
 def statistics(data):
+    '''
+    :param data: list of tuple of (user movie rating)
+    :return: the min max of user and movie
+    '''
     row = set([int(line[0]) for line in data])
     col = set([int(line[1]) for line in data])
     return min(row), max(row), min(col), max(col)
 
 
 def to_matrix(testset, dimension):
+    '''
+    :param testset: 
+    :param dimension:
+    :return:
+    '''
     ratings = sp.lil_matrix((dimension))
     for row, col, rating in testset:
         ratings[int(row) - 1, int(col) - 1] = int(rating)

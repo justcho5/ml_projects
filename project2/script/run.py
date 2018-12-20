@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import surprise
+import random
 import numpy as np
 import pandas as pd
 import pickle
@@ -39,6 +40,7 @@ def split_user_movie(pandas_data_frame):
 def main():
     print("Start script");
     start_time = time.time()
+    random.seed(1000)
 
     model_to_param = {
         "BaselineOnly": {},
