@@ -26,9 +26,7 @@ from scipy.optimize import minimize
 
 
 import dataset as d
-
 import os
-
 from tqdm import tqdm
 
 class GlobalMean:
@@ -37,13 +35,39 @@ class GlobalMean:
 
     def fit(self, trainset, testset, param):
 
-        #algo.fit(trainset)
-        #predictions = algo.test(testset)
+        only_ratings_train = list(map(lambda x: x[2], trainset))
+        global_mean = np.mean(only_ratings)
 
-        # Compute and print Root Mean Squared Error
-        #self.rmse = accuracy.rmse(predictions, verbose=False)
-        #self.algo = algo
+        test_set = list(test.all_ratings())
+        only_ratings_test = list(map(lambda x: x[2], test_set))
 
+        predictions = np.repeat(global_mean, len(test_set))
+
+        self.rmse = np.sqrt(mean_squared_error(only_ratings_test, predictions))
+        self.global_mean = global_mean
+
+    def predict(self, user, movie):
+        return self.global_mean
+
+class UserMean:
+    def __init__(self):
+        self.name = "UserMean"
+
+    def fit(self, trainset, testset, param):
+
+        only_ratings_train = list(map(lambda x: x[2], trainset))
+        global_mean = np.mean(only_ratings)
+
+        test_set = list(test.all_ratings())
+        only_ratings_test = list(map(lambda x: x[2], test_set))
+
+        predictions = np.repeat(global_mean, len(test_set))
+
+        self.rmse = np.sqrt(mean_squared_error(only_ratings_test, predictions))
+        self.global_mean = global_mean
+
+    def predict(self, user, movie):
+        return self.global_mean
 
 class SurpriseBasedModel:
     def __init__(self, model, name):
@@ -63,6 +87,9 @@ class SurpriseBasedModel:
         # Compute and print Root Mean Squared Error
         self.rmse = accuracy.rmse(predictions, verbose=False)
         self.algo = algo
+
+    def predict(self, user, movie):
+        return self.algo.predict(user, movie).est
 
 def calcualte_mean_square_error(weights, model_predictions, real):
     preds = []
