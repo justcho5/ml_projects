@@ -25,7 +25,7 @@ import submission as s
 import time
 import sys
 
-FILE_NAME = '../data/data_surprise_small.csv'
+FILE_NAME = '../data/data_surprise.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
 def split_user_movie(pandas_data_frame):
