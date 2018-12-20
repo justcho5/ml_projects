@@ -25,8 +25,8 @@ import submission as s
 import time
 import sys
 
-FILE_NAME = '../data/data_surprise.csv'
-SAMPLE_SUBMISSION = '../data/sample_submission.csv'
+#FILE_NAME = '../data/data_surprise.csv'
+#SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
 FILE_NAME = '../data/data_surprise_small.csv'
 SAMPLE_SUBMISSION = '../data/sample_submission_small.csv'
