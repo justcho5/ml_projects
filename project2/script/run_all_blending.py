@@ -25,11 +25,11 @@ import submission as s
 import time
 import sys
 
-#FILE_NAME = '../data/data_surprise.csv'
-#SAMPLE_SUBMISSION = '../data/sample_submission.csv'
+FILE_NAME = '../data/data_surprise.csv'
+SAMPLE_SUBMISSION = '../data/sample_submission.csv'
 
-FILE_NAME = '../data/data_surprise_small.csv'
-SAMPLE_SUBMISSION = '../data/sample_submission_small.csv'
+#FILE_NAME = '../data/data_surprise_small.csv'
+#SAMPLE_SUBMISSION = '../data/sample_submission_small.csv'
 
 def split_user_movie(pandas_data_frame):
     user_movie = pandas_data_frame.Id.str.extract(r'r(?P<user>\d+)_c(?P<movie>\d+)')
@@ -42,18 +42,18 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "BaselineOnly": {},
-            "SVD": { 'n_factors': 20 },
-            "SlopeOne": {},
+            #"BaselineOnly": {},
+            #"SVD": { 'n_factors': 20 },
+            #"SlopeOne": {},
             #KNNBaseline":   {
             #   'k': 100,
             #   'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
             #,
             "GlobalMean": {},
-            #"UserMean": {},
+            "UserMean": {},
             "MovieMean": {},
-            "MatrixFactor": {},
-            "ALS": {},
+            #""MatrixFactor": {},
+            #"ALS": {},
              #"KNNWithMeans": {},
              #"KNNWithZScore": {},
              #"KNNBasic": {},

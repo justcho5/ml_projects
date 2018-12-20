@@ -346,7 +346,7 @@ class MovieMean:
     def fit(self, trainset, testset, param):
 
         df_train = pd.DataFrame.from_records(trainset.all_ratings(), columns=['user', 'movie', 'rating'])
-        df_train.movie = df_train.movie
+        df_train.movie = df_train.movie + 1
 
         # get mean per movie
         self.df_movie_to_rating = df_train.groupby('movie')['rating'].mean()
