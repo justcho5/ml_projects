@@ -61,7 +61,7 @@ def with_default_param():
         start_time = time.time()
 
         all = m.cross_validate(pool=pool,
-                               splits=5,
+                               splits=12,
                                model_to_param=model_to_param,
                                output_file_name=output_file_name,
                                data_file=FILE_NAME,
