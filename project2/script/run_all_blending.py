@@ -60,7 +60,7 @@ def with_default_param():
         all = m.cross_validate(pool=pool,
                                splits=12,
                                model_to_param=model_to_param,
-                               None,
+                               output_file_name=output_file_name,
                                data_file=FILE_NAME,
                                with_blending=True)
 
