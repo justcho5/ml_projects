@@ -100,9 +100,6 @@ class MatrixFactor:
         num_epochs = 20  # number of full passes through the train set
         errors = [0]
 
-        # set seed
-        np.random.seed(988)
-
         # init matrix
         user_features, item_features = init_MF(train, num_features)
 
