@@ -93,11 +93,11 @@ class MatrixFactor:
     def fit(self, trainset, testset, param):
         if testset is None:
             min_row, max_row, min_col, max_col = statistics(list(trainset.all_ratings()))
-            dim = (max_row + 1, max_col + 1)
+            dim = (max_row, max_col)
         else:
             min_row, max_row, min_col, max_col = statistics(testset)
             min_row2, max_row2, min_col2, max_col2 = statistics(list(trainset.all_ratings()))
-            dim = (max(max_row, max_row2) + 1, max(max_col, max_col2) + 1)
+            dim = (max(max_row, max_row2), max(max_col, max_col2))
             test = to_matrix(testset, dim)
 
         print("Dimension:", dim)
