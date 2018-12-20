@@ -51,7 +51,7 @@ def with_default_param():
             #,
             "GlobalMean": {},
             #"UserMean": {},
-            #"MovieMean": {},
+            "MovieMean": {},
             "MatrixFactor": {},
             "ALS": {},
              #"KNNWithMeans": {},
