@@ -48,7 +48,7 @@ def with_default_param():
             },
             "GlobalMean": {},
             "UserMean": {},
-            "MovieMean": {}
+            "MovieMean": {},
             #"MatrixFactor": {},
              "KNNWithMeans": {},
              "KNNWithZScore": {},
