@@ -112,7 +112,7 @@ class MatrixFactor:
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1
         lambda_item = 0.7
-        num_epochs = 1  # number of full passes through the train set
+        num_epochs = 10  # number of full passes through the train set
         errors = [0]
 
         # init matrix
