@@ -82,30 +82,43 @@ def with_default_param():
 
         print("Do predictions")
         predictions = []
-        for each in tqdm(df_submission.iterrows(), total=len(df_submission)):
-            user = each[1].user
-            movie = each[1].movie
+        items_to_predict = list(df_submission.iterrows())
 
-            mix_prediction = 0
-            for i, w in enumerate(models):
-                pred = w.algo.predict(user, movie).est
-                mix_prediction += weights[i] * pred
-            predictions.append(mix_prediction)
-        clipped_predictions = np.clip(predictions, 1, 5)
+        items = np.array_split(items_to_predict, 12)
+        items = map(lambda x: (x, models, predictions, weights), items)
+        p = tqdmp(pool.imap(predict, items))
+        new_predictions = [item for sublist in p for item in sublist]
 
-        print("Do predictions")
-        new_predictions = []
-        for i, each in enumerate(tqdm(df_submission.iterrows(), total=len(df_submission))):
-            one = (each[1].user, each[1].movie, clipped_predictions[i])
-            new_predictions.append(one)
-
-        print("Do predictions")
+        print("Create File")
         s.write_predictions_to_file(new_predictions, output_file_name + "_prediction.csv")
 
         diff = (time.time() - start_time)
         print("Time taken: {}s".format(diff))
 
         print("Script ended")
+
+
+def predict(input):
+    items_to_predict, models, predictions, weights = input
+
+    for each in tqdm(items_to_predict):
+        user = each[1].user
+        movie = each[1].movie
+
+        mix_prediction = 0
+        for i, w in enumerate(models):
+            pred = w.algo.predict(user, movie).est
+            mix_prediction += weights[i] * pred
+        predictions.append(mix_prediction)
+    clipped_predictions = np.clip(predictions, 1, 5)
+
+    new_predictions = []
+    for i, each in enumerate(tqdm(items_to_predict)):
+        one = (each[1].user, each[1].movie, clipped_predictions[i])
+        new_predictions.append(one)
+
+    return new_predictions
+
 
 if __name__ == "__main__":
     with_default_param()
