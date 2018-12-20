@@ -162,21 +162,40 @@ class SurpriseBasedModel:
     def predict(self, user, movie):
         return self.algo.predict(user, movie).est
 
+
 def calcualte_mean_square_error(weights, model_predictions, real):
-    preds = []
+    '''
+    Calculates mean square error for several models combined using the given weights.
+
+    :param weights: the weight of each model
+    :param model_predictions: the predicitons by each model
+    :param real: the actual value
+    :return: RMSE between prediction and real value
+    '''
+
+    prediction = []
+
+    # calculate the weighted prediction
     for i, pred in enumerate(model_predictions):
         mix_prediction = 0
         for i, w in enumerate(weights):
             mix_prediction += weights[i] * pred[i]
-        preds.append(mix_prediction)
-    preds = np.array(preds)
-    preds = preds.clip(1, 5)
+        prediction.append(mix_prediction)
 
-    mse = mean_squared_error(preds, real)
+    prediction = np.array(prediction)
+    prediction = prediction.clip(1, 5)
+
+    mse = mean_squared_error(prediction, real)
     return np.sqrt(mse)
 
 
 def get_predictions(models, data_to_predict):
+    '''
+    :param models: list of models
+    :param data_to_predict: list of tuples to predict
+    :return: the predictions for all given model
+    '''
+
     result = []
     for each_data in tqdm(data_to_predict):
         predictions = []
@@ -188,6 +207,15 @@ def get_predictions(models, data_to_predict):
 
 
 def blending_result(models, testset):
+    '''
+    Tries to find the best weight such that you can combine the predictions,
+    such that the RMSE is minimized
+
+    :param models: list of models
+    :param testset: the data to test the blending on
+    :return: the best weights or None
+    '''
+
     # do blening
     if len(models) > 1:
 
@@ -206,15 +234,21 @@ def blending_result(models, testset):
 
 
 def call_algo(i):
+    '''
+    This is a help construct such that you can runn it in parallel
+    :param i: tuple of parameter
+    :return: the best result
+    '''
     trainset, testset, model_name, with_blending, data = i
 
     models = model_name_to_model(model_name)
 
     print("Fit each model")
     progress = tqdm(models)
-    for m in progress:
-        progress.set_description(m.name)
-        m.fit(trainset, testset, model_name[m.name])
+
+    for each_model in progress:
+        progress.set_description(each_model.name)
+        each_model.fit(trainset, testset, model_name[each_model.name])
 
     if with_blending:
         blending =  blending_result(models, testset)
@@ -262,6 +296,22 @@ def cross_validate(pool,
                    data_file,
                    splits = 12,
                    with_blending=False):
+    '''
+    Helper function which does cross validation in prallel
+
+    :param pool: The pool to use for parallelism
+    :param model_to_param:
+    dictionary key is the model to use and value is the model parameter
+
+    :param output_file_name: if given, the output is persisted on the disk
+    :param data_file:
+    the input data file
+
+    :param splits: how many splits to perform
+
+    :param with_blending: return blending weights if this is True
+    :return: all the results form each fold
+    '''
 
     models = list(model_to_param.keys())
     print("Running with models '{}' and split {}".format(models, splits))
@@ -275,19 +325,21 @@ def cross_validate(pool,
 
     print("running CV")
 
-    ## run the code sequentially or parallely
+    ## run the code sequentially or in parlalely
     argument_list = list(map(lambda x: (x[0], x[1], model_to_param, with_blending, data), splits))
 
     for result in tqdm(pool.imap(call_algo, argument_list), total=len(argument_list), desc="CV"):
         results.append(result)
 
+    persist_result(output_file_name, results)
+    return results
+
+
+def persist_result(output_file_name, results):
     if not os.path.exists("result"):
         os.makedirs("result")
-
     if output_file_name is not None:
         file_to_write_to = "result/{}.result".format(output_file_name)
         print("Write result to file", file_to_write_to)
         pickle.dump(results, open(file_to_write_to, "wb"))
-
-    return results
 
