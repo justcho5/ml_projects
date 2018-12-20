@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
 def plot(predictions):
     data = np.zeros((5, 5), dtype=int)
     for rating in range(1, 6):
