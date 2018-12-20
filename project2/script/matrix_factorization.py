@@ -35,11 +35,11 @@ import os
 from tqdm import tqdm
 
 
-
 def statistics(data):
     row = set([int(line[0]) for line in data])
     col = set([int(line[1]) for line in data])
     return min(row), max(row), min(col), max(col)
+
 
 def to_matrix(testset, dimension):
     ratings = sp.lil_matrix((dimension))
@@ -47,6 +47,7 @@ def to_matrix(testset, dimension):
         ratings[int(row) - 1, int(col) - 1] = int(rating)
 
     return ratings
+
 
 def compute_error(data, user_features, item_features, nz):
     """compute the loss (MSE) of the prediction of nonzero elements."""
@@ -66,6 +67,7 @@ def init_MF2(train, num_features):
     item_features = model.fit_transform(train)
     user_features = model.components_
     return user_features, item_features.T
+
 
 def init_MF(train, num_features):
     """init the parameter for matrix factorization."""
@@ -103,12 +105,11 @@ class MatrixFactor:
 
         """matrix factorization by SGD."""
         # define parameters
-        gamma = 0.025
+        gamma = 0.01
         num_features = 20  # K in the lecture notes
         lambda_user = 0.1
-        lambda_item = 0.016
-        num_epochs = 10  # number of full passes through the train set
-        # num_epochs = 1  # number of full passes through the train set
+        lambda_item = 0.7
+        num_epochs = 20  # number of full passes through the train set
         errors = [0]
 
         # init matrix
@@ -243,14 +244,11 @@ class ALS:
         train = to_matrix(list(trainset.all_ratings()), dim)
 
         """Alternating Least Squares (ALS) algorithm."""
-        # define parameters
         num_features = 20  # K in the lecture notes
-        lambda_user = 0.2
-        lambda_item = 0.9
-        # stop_criterion = 1e-2
-        stop_criterion = 1e-3
+        lambda_user = 0.1
+        lambda_item = 0.7
+        stop_criterion = 1e-4
         change = 1
-        error_list = [0, 0]
 
         # init ALS
         user_features, item_features = init_MF(train, num_features)

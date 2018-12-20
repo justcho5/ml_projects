@@ -31,7 +31,8 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "UserMean": {},
+            "MovieMean": {},
+            "GlobalMean": {},
             #"KNNBasic": {},
             #"KNNWithMeans": {},
             #"KNNWithZScore": {},
@@ -51,7 +52,7 @@ def with_default_param():
                 model : model_to_param[model]
             }
             all = m.cross_validate(pool=pool,
-                                   splits=2,
+                                   splits=12,
                                    model_to_param=model_to_param,
                                    output_file_name=None,
                                    data_file=FILE_NAME,
