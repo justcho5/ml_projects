@@ -52,9 +52,9 @@ def with_default_param():
             # "SVDpp": {},
             # "NMF": {},
             # "CoClustering": {},
-            #"GlobalMean": {},
+            "GlobalMean": {},
             "UserMean": {},
-            #"movie_mean": {}
+            #"MovieMean": {}
         }
         output_file_name = "all_blending_with_global_mean"
 

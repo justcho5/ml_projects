@@ -77,10 +77,34 @@ class UserMean:
             true_rating.append(rating)
 
         self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
-        self.global_mean = global_mean
 
     def predict(self, user, movie):
         return self.df_user_to_rating.loc[int(user)]
+
+class MovieMean:
+    def __init__(self):
+        self.name = "MovieMean"
+
+    def fit(self, trainset, testset, param):
+
+        df_train = pd.DataFrame.from_records(trainset.all_ratings(), columns=['user', 'movie', 'rating'])
+
+        # get mean per movie
+        self.df_movie_to_rating = df_train.groupby('movie')['rating'].mean()
+
+        # get mean rating per user
+        predictions = []
+        true_rating = []
+        for each in testset:
+            movie = each[1]
+            rating = each[2]
+            predictions.append(self.df_movie_to_rating.loc[int(movie)])
+            true_rating.append(rating)
+
+        self.rmse = np.sqrt(mean_squared_error(true_rating, predictions))
+
+    def predict(self, user, movie):
+        return self.df_movie_to_rating.loc[int(movie)]
 
 class SurpriseBasedModel:
     def __init__(self, model, name):
