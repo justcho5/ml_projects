@@ -31,17 +31,8 @@ def with_default_param():
 
     with Pool(12) as pool:
         model_to_param = {
-            "MovieMean": {},
-            "GlobalMean": {},
-            #"KNNBasic": {},
-            #"KNNWithMeans": {},
-            #"KNNWithZScore": {},
-            #"KNNBaseline": {},
-            #"SVD": {},
-            #"SVDpp": {},
-            #"NMF": {},
-            #"SlopeOne": {},
-            #"CoClustering": {},
+            "SVD": {},
+            "SVDpp": {},
         }
 
         for model in model_to_param:
