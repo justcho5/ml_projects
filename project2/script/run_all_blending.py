@@ -50,7 +50,7 @@ def with_default_param():
             #   'sim_options': { 'name': 'pearson_baseline', 'user_based': 'True' }
             #,
             "GlobalMean": {},
-            "UserMean": {},
+            #"UserMean": {},
             "MovieMean": {},
             "MatrixFactor": {},
             "ALS": {},

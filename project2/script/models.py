@@ -317,7 +317,7 @@ class UserMean:
         df_train = pd.DataFrame.from_records(trainset.all_ratings(), columns=['user', 'movie', 'rating'])
 
         # this is strange, surprise seems to index user by 0
-        df_train.user = df_train.user
+        df_train.user = df_train.user + 1
 
         # get mean per user
         self.df_user_to_rating = df_train.groupby('user')['rating'].mean()
