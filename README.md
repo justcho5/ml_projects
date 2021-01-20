@@ -1,7 +1,7 @@
 # Machine Learning Projects
 
 ## Project 1
-
+Internal Higgs Boson Kaggle Competition
 ### Folder structure
 
 ```
